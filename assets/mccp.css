@@ -1,4 +1,4 @@
-.invoice-wrapper {
+.entry-content #__apn-invoice.invoice-wrapper {
     height: unset;
     min-height: unset;
     flex-direction: column;
