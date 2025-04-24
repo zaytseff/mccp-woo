@@ -51,7 +51,6 @@ class WC_MCCP extends WC_Payment_Gateway
 
         Invoice::db($this->db_callback(), $table_prefix);
         Invoice::settings($this->options);
-
     }
 
     // Load existing og create new
@@ -89,7 +88,7 @@ class WC_MCCP extends WC_Payment_Gateway
         $invoice_id = isset($_GET['invoice']) ? sanitize_text_field($_GET['invoice']) : null;
 
         if($invoice) {
-            if ($invoice->invoice == $invoice_id) {            
+            if ($invoice->invoice == $invoice_id) {
                 echo Invoice::renderLoader();
             }
             else {
@@ -152,14 +151,15 @@ class WC_MCCP extends WC_Payment_Gateway
             _e('Cryptocurrency payment temporary unavailable. Choose other payment method.', 'mccp');
             return;
         }
+        $amounts = Utils::fiat2cryptos($total, strtolower($woo_currency), $coins);
         ?>
         <select id="mccp_currency" name="mccp_currency">
-        <?php foreach ( $coins as $coin ) : ?>
-            <option value="<?php echo esc_html($coin->getAbbr()); ?>">
-                <?php echo esc_html($coin->name); ?>:
+        <?php
+            foreach ( $coins as $coin ) : ?>
+            <option value="<?php echo esc_html($coin->abbr); ?>">
+                <?php echo esc_html($coin->abbr); ?>:
                 <?php
-                    $sum = Utils::cur2min(Utils::fiat2crypto($total, $woo_currency, $coin->getAbbr()), $coin->unitsFactor);
-                    echo esc_html(Utils::humanizeAmount($sum, $coin)); 
+                    echo esc_html(Utils::humanizeAmount(Utils::cur2min($amounts[$coin->abbr], $coin->unitsFactor), $coin));
                 ?>
             </option>
             <?php endforeach; ?>
@@ -170,29 +170,27 @@ class WC_MCCP extends WC_Payment_Gateway
     public function get_available_coins(): array
     {
         $coins = [];
-        $networks = $this->options->getNetworks();
+        $networks = $this->options->networks();
         $test_customer = $this->options->getExtra('test_customer');
 
         foreach ($networks as $network) {
             if ($network->getAddress() !== null && !$network->hasError()) {
                 if ($network->isTestnet()) {
                     if ($test_customer == WC()->customer->get_billing_email() || $test_customer == '*' || current_user_can('manage_options')) {
-                        $coins[$network->getAbbr()] = $network;
+                        $coins[$network->abbr] = $network;
+                    }
+                }
+                $tokens = $network->getTokens($this->options->getCurrencies());
+                if ($tokens) {
+                    $tokens = array_merge([$network], $tokens);
+                    foreach ($tokens as $token) {
+                        if ($this->options->getExtra($token->abbr) == true) {
+                            $coins[$token->abbr] = $token;
+                        }
                     }
                 }
                 else {
-                    $tokens = $network->getTokens($this->options->getCurrencies());
-                    if ($tokens) {
-                        $tokens = array_merge([$network], $tokens);
-                        foreach ($tokens as $token) {
-                            if ($this->options->getExtra($token->abbr) == true) {
-                                $coins[$token->getAbbr()] = $token;
-                            }
-                        }
-                    }
-                    else {
-                        $coins[$network->getAbbr()] = $network;
-                    }
+                    $coins[$network->abbr] = $network;
                 }
             }
         }
@@ -200,7 +198,7 @@ class WC_MCCP extends WC_Payment_Gateway
     }
     public function get_option($key, $empty_value = null)
     {
-        if(isset($this->options)) {        
+        if(isset($this->options)) {
             $property = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $key))));
 
             if (property_exists($this->options, $property)) {
@@ -298,7 +296,7 @@ class WC_MCCP extends WC_Payment_Gateway
                         $this->options->setExtra($token->abbr, array_key_exists($token->abbr, $tokens_data) ? true : false);
                     }
                 }
-            }            
+            }
         }
         $this->options->saveCurrencies();
         $this->update_option('options', $this->options->toJson());
@@ -309,6 +307,10 @@ class WC_MCCP extends WC_Payment_Gateway
         global $wp_version;
         $this->form_fields = $this->admin_fields();
 
+        if (count($this->options->currencies) < count($this->options->loadCurrencies()->currencies)) {
+            $this->update_option('options', $this->options->toJson());
+        }
+
         foreach ($this->options->getNetworks() as $network) {
             if ($network->hasError()) {
                 $this->add_error(sprintf("<strong>%s has error:</strong> %s", ...[$network->name, $network->getError()]));
@@ -316,7 +318,7 @@ class WC_MCCP extends WC_Payment_Gateway
         }
         if ($this->get_errors()) {
             $this->display_errors();
-        }   
+        }
         ?>
             <h3><?php _e('Multi Crypto Currency Payment Gateway', 'mccp'); ?></h3>
             <div><?php _e('This plugin uses the Apirone crypto processing service.', 'mccp'); ?> <a href="https://apirone.com" target="_blank"><?php _e('Details'); ?></a></div>
@@ -490,14 +492,14 @@ class WC_MCCP extends WC_Payment_Gateway
                                         <?php $tokens = array_merge([$network], $tokens); ?>
                                             <?php foreach ($tokens as $token) : ?>
                                             <div class="token_item">
-                                                <span class="currency-icon <?php echo str_replace('@', '_', esc_html($token->getAbbr())); ?>"></span>
+                                                <span class="currency-icon <?php echo str_replace('@', '_', esc_html($token->abbr)); ?>"></span>
                                                 <label for="woocommerce_mccp_tokens[<?php echo esc_html($token->getAbbr()); ?>]">
-					                                <input type="checkbox" name="woocommerce_mccp_tokens[<?php echo esc_html($token->getAbbr()); ?>]"
+                                                    <input type="checkbox" name="woocommerce_mccp_tokens[<?php echo esc_html($token->getAbbr()); ?>]"
                                                     id="woocommerce_mccp_tokens[<?php echo esc_html($token->getAbbr()); ?>]"
                                                     <?php if ($this->options->getExtra($token->getAbbr()) == 1) : ?>
                                                     checked="checked"
                                                     <?php endif; ?>>
-                                                    <?php echo $token->getName(); ?>
+                                                    <?php echo strtoupper($token->abbr); ?>
                                                     <?php echo wc_help_tip(sprintf(__('Show/hide <b>%s</b> from currency selector', 'mccp'), $token->getName())); ?>
                                                 </label>
                                             </div>
@@ -636,7 +638,7 @@ class WC_MCCP extends WC_Payment_Gateway
                                 }
                             }
                         }
-                    }            
+                    }
                 }
             }
         }
@@ -659,7 +661,7 @@ class WC_MCCP extends WC_Payment_Gateway
                                 $options->setExtra($token->abbr, true);
                             }
                         }
-                    }            
+                    }
                 }
             }
         }

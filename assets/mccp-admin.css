@@ -9,23 +9,17 @@
 
 }
 
-.currency-icon.btc {
+.currency-icon.btc, .currency-icon.tbtc {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/btc.svg);
     background-size: cover;
 }
 
-.currency-icon.tbtc {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/btc.svg);
-    filter: grayscale();
-    background-size: cover;
-}
-
-.currency-icon.ltc {
+.currency-icon.ltc, .currency-icon.tltc {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/ltc.svg);
     background-size: cover;
 }
 
-.currency-icon.bch {
+.currency-icon.bch, .currency-icon.tbch {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/bch.svg);
     background-size: cover;
 }
@@ -35,20 +29,44 @@
     background-size: cover;
 }
 
-.currency-icon.trx {
+.currency-icon.trx, .currency-icon.ttrx {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/trx.svg);
     background-size: cover;
 }
 
-.currency-icon.usdt_trx {
+.currency-icon.usdt_trx, .currency-icon.usdt_ttrx {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdt_trx.svg);
     background-size: cover;
 }
-.currency-icon.usdc_trx {
+.currency-icon.usdc_trx, .currency-icon.usdc_ttrx {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdc_trx.svg);
     background-size: cover;
 }
+.currency-icon.eth,.currency-icon.teth {
+    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/eth.svg);
+    background-size: cover;
+}
+.currency-icon.usdc_eth,.currency-icon.usdc_teth {
+    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdc_eth.svg);
+    background-size: cover;
+}
 
+.currency-icon.link_eth,.currency-icon.link_teth {
+    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/link_eth.svg);
+    background-size: cover;
+}
+
+.currency-icon.usdt_eth, .currency-icon.usdt_teth {
+    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdt_eth.svg);
+    background-size: cover;
+}
+
+.currency-icon.tbtc, .currency-icon.tbch, .currency-icon.tltc,
+.currency-icon.ttrx, .currency-icon.usdc_ttrx, .currency-icon.usdt_ttrx,
+.currency-icon.teth, .currency-icon.usdc_teth, .currency-icon.usdt_teth, .currency-icon.link_teth
+{
+    filter: grayscale();
+}
 .token_item {
     display: flex;
     align-items: center;
@@ -66,7 +84,9 @@ table.form-table.mccp-settings label.currency-label{
     display: flex;
     align-items: center;
 }
-
+#mccp-order_states .form-table th {
+    width:270px;
+}
 .icon-wrapper {
 	height: 32px;
 }
