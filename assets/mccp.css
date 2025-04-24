@@ -7,3 +7,10 @@
 .invoice-wrapper > .woocommerce-order {
     width: 100%;
 }
+
+select#mccp_currency {
+    width: 100%;
+    padding: .25rem .5rem;
+    border: 1px solid #999;
+    border-radius: 4px;
+}
