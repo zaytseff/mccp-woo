@@ -34,30 +34,25 @@
     background-size: cover;
 }
 
-.currency-icon.usdt_trx, .currency-icon.usdt_ttrx {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdt_trx.svg);
-    background-size: cover;
-}
-.currency-icon.usdc_trx, .currency-icon.usdc_ttrx {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdc_trx.svg);
-    background-size: cover;
-}
 .currency-icon.eth,.currency-icon.teth {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/eth.svg);
     background-size: cover;
 }
-.currency-icon.usdc_eth,.currency-icon.usdc_teth {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdc_eth.svg);
-    background-size: cover;
-}
-
 .currency-icon.link_eth,.currency-icon.link_teth {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/link_eth.svg);
     background-size: cover;
 }
 
-.currency-icon.usdt_eth, .currency-icon.usdt_teth {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdt_eth.svg);
+.currency-icon.usdc_trx, .currency-icon.usdc_ttrx,
+.currency-icon.usdc_eth,.currency-icon.usdc_teth,
+.currency-icon.usdc_bnb,.currency-icon.usdc_bnb {
+    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdc.svg);
+    background-size: cover;
+}
+.currency-icon.usdt_trx, .currency-icon.usdt_ttrx,
+.currency-icon.usdt_eth, .currency-icon.usdt_teth,
+.currency-icon.usdt_bnb, .currency-icon.usdt_tbnb {
+    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/usdt.svg);
     background-size: cover;
 }
 

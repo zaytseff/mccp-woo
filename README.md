@@ -94,31 +94,40 @@ Cancel and return the rest amount directly to the customers.
 
 ## Changelog
 
-### Version 2.0.2 | 04/01/2025 =
+### Version 2.0.4 | 03/09/2025
+
+* Added BNB coin, USDT and USDC stable coins on Binance smart chain
+* Apirone SDK Updated
+
+### Version 2.0.3 | 29/04/2025
+
+* Added Etherium USDT/USDC support
+* Apirone SDK Updated
+
+
+### Version 2.0.2 | 04/01/2025
 
 * Changed get_footer hook to wp_enqueue_scripts hook
 
-### Version 2.0.1 | 28/11/2024 =
+### Version 2.0.1 | 28/11/2024
 
 * Fixed render ajax response in the checkout page when offset exists and is zero
 * Updated the interface for addresses of Tron tokens on the settings page
 * SDK updated to version 1.1.6:
-    * Isolated styles from sdk root element
-    * Clear unused styles & code cleanup
-    * Minimized styles assets
-    * Added mobile view for address strings & mobile styles improved
-    * JS updated
+  * Isolated styles from sdk root element
+  * Clear unused styles & code cleanup
+  * Minimized styles assets
+  * Added mobile view for address strings & mobile styles improved
+  * JS updated
 
-### Version 2.0.0 | 01/11/2024 =
+### Version 2.0.0 | 01/11/2024
 
 * Started using the official Apirone SDK PHP library
 * New official Apirone invoice design
 * Split networks & tokens on the plugin settings page
 * Fixed the "lost merchant address" bug for TRON network & tokens
 
-## Changelog
-
-### Version 1.2.10 | 11/07/2024 =
+### Version 1.2.10 | 11/07/2024
 
 * Show tbtc to unauthenticated users if test_customer is set to ```*``` (asterisk symbol)
 
