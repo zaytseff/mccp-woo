@@ -94,15 +94,19 @@ Cancel and return the rest amount directly to the customers.
 
 ## Changelog
 
+### Version 2.0.5 | 04/09/2025
+
+* Apirone SDK updated to 1.2.8
+
 ### Version 2.0.4 | 03/09/2025
 
 * Added BNB coin, USDT and USDC stable coins on Binance smart chain
-* Apirone SDK Updated
+* Apirone SDK updated
 
 ### Version 2.0.3 | 29/04/2025
 
-* Added Etherium USDT/USDC support
-* Apirone SDK Updated
+* Added Etherium coin, USDT and USDC  stable coins on Etherium smart chain
+* Apirone SDK updated
 
 
 ### Version 2.0.2 | 04/01/2025
