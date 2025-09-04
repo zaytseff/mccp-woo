@@ -84,6 +84,10 @@ The plugin uses the free Rest API of the Apirone crypto payment gateway. The pri
 
 == Changelog ==
 
+= Version 2.0.4 | 03/09/2025 =
+- Added BNB coin, USDT and USDC stable coins on Binance smart chain
+- Apirone SDK Updated
+
 = Version 2.0.3 | 29/04/2025 =
 - Added Etherium USDT/USDC support
 - Apirone SDK Updated
