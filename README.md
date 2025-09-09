@@ -94,6 +94,10 @@ Cancel and return the rest amount directly to the customers.
 
 ## Changelog
 
+### Version 2.0.6 | 09/09/2025
+
+* Apirone SDK updated to 1.2.9
+
 ### Version 2.0.5 | 04/09/2025
 
 * Apirone SDK updated to 1.2.8
