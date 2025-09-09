@@ -38,6 +38,10 @@
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/eth.svg);
     background-size: cover;
 }
+.currency-icon.bnb,.currency-icon.tbnb {
+    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/bnb.svg);
+    background-size: cover;
+}
 .currency-icon.link_eth,.currency-icon.link_teth {
     background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/css/icons/crypto/link_eth.svg);
     background-size: cover;
@@ -58,7 +62,8 @@
 
 .currency-icon.tbtc, .currency-icon.tbch, .currency-icon.tltc,
 .currency-icon.ttrx, .currency-icon.usdc_ttrx, .currency-icon.usdt_ttrx,
-.currency-icon.teth, .currency-icon.usdc_teth, .currency-icon.usdt_teth, .currency-icon.link_teth
+.currency-icon.teth, .currency-icon.usdc_teth, .currency-icon.usdt_teth, .currency-icon.link_teth,
+.currency-icon.tbnb, .currency-icon.usdc_tbnb, .currency-icon.usdt_tbnb
 {
     filter: grayscale();
 }

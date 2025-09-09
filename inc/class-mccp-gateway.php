@@ -157,7 +157,7 @@ class WC_MCCP extends WC_Payment_Gateway
         <?php
             foreach ( $coins as $coin ) : ?>
             <option value="<?php echo esc_html($coin->abbr); ?>">
-                <?php echo esc_html($coin->abbr); ?>:
+                <?php echo esc_html($coin->alias); ?>:
                 <?php
                     echo esc_html(Utils::humanizeAmount(Utils::cur2min($amounts[$coin->abbr], $coin->unitsFactor), $coin));
                 ?>
@@ -472,10 +472,10 @@ class WC_MCCP extends WC_Payment_Gateway
                             ?>
                             <tr valign="middle" class="single_select_page">
                                 <th scope="row" class="titledesc">
-                                    <label for="mccp_<?php echo esc_html( $network->getAbbr() ); ?>" class="currency-label">
-                                        <span class="currency-icon <?php echo $network->getAbbr(); ?>"></span>
+                                    <label for="mccp_<?php echo esc_html( $network->abbr ); ?>" class="currency-label">
+                                        <span class="currency-icon <?php echo $network->abbr; ?>"></span>
                                         <span style="position:relative">
-                                        <?php echo esc_html( $network->getName() . $blockchain ); ?>
+                                        <?php echo esc_html( $network->alias . $blockchain ); ?>
                                         <?php if ($network->isTestnet()) : ?>
                                         <?php echo wc_help_tip(__('Use this currency for test purposes only! This currency shown for admin and "test currency customer" (if set) is only on the front end of Woocommerce!')); ?>
                                         <?php endif; ?>
@@ -485,7 +485,7 @@ class WC_MCCP extends WC_Payment_Gateway
                                     </label>
                                 </th>
                                 <td class="forminp">
-                                    <input type="text" name="woocommerce_mccp_networks[<?php echo esc_html( $network->getAbbr() ); ?>]" class="input-text regular-input<?php echo $network->hasError() ? ' error' : '' ;?>" value="<?php echo esc_html( $network->getAddress() ); ?>">
+                                    <input type="text" name="woocommerce_mccp_networks[<?php echo esc_html( $network->abbr ); ?>]" class="input-text regular-input<?php echo $network->hasError() ? ' error' : '' ;?>" value="<?php echo esc_html( $network->getAddress() ); ?>">
 
                                     <?php  if ($tokens) : ?>
                                         <div class="tokens_wrapper">
@@ -493,14 +493,14 @@ class WC_MCCP extends WC_Payment_Gateway
                                             <?php foreach ($tokens as $token) : ?>
                                             <div class="token_item">
                                                 <span class="currency-icon <?php echo str_replace('@', '_', esc_html($token->abbr)); ?>"></span>
-                                                <label for="woocommerce_mccp_tokens[<?php echo esc_html($token->getAbbr()); ?>]">
-                                                    <input type="checkbox" name="woocommerce_mccp_tokens[<?php echo esc_html($token->getAbbr()); ?>]"
-                                                    id="woocommerce_mccp_tokens[<?php echo esc_html($token->getAbbr()); ?>]"
-                                                    <?php if ($this->options->getExtra($token->getAbbr()) == 1) : ?>
+                                                <label for="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]">
+                                                    <input type="checkbox" name="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]"
+                                                    id="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]"
+                                                    <?php if ($this->options->getExtra($token->abbr) == 1) : ?>
                                                     checked="checked"
                                                     <?php endif; ?>>
-                                                    <?php echo strtoupper($token->abbr); ?>
-                                                    <?php echo wc_help_tip(sprintf(__('Show/hide <b>%s</b> from currency selector', 'mccp'), $token->getName())); ?>
+                                                    <?php echo strtoupper($token->alias); ?>
+                                                    <?php echo wc_help_tip(sprintf(__('Show/hide <b>%s</b> from currency selector', 'mccp'), $token->name)); ?>
                                                 </label>
                                             </div>
                                             <?php endforeach; ?>

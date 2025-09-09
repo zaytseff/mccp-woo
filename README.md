@@ -4,13 +4,13 @@
 
 Accept the most popular cryptocurrencies on your store all around the world. Use any crypto supported by provider to accept coins using the Forwarding payment process.
 
-**Watch on YouTUBe**
+### Watch on YouTube
 
 [Install process](https://www.youtube.com/watch?v=evauShnffmk)
 |
 [Payment process](https://www.youtube.com/watch?v=rZjs7u6iK7U)
 
-**Key features:**
+### Key features:
 
 * Payment automatically forwards from temporarily generated crypto-address directly into your wallet (temp address identify payment to exact order)
 
@@ -40,9 +40,11 @@ The store completes the transaction.
 * Bitcoin Cash
 * Dogecoin
 * TRON
-* Tether USD (TRC20)
-* USD Coin (TRC20)
-  
+* Ethereum
+* BNB SMART CHAIN
+* USDC (TRC20), USDC (ERC20), USDC (BEP20)
+* USDT (TRC20), USDT (ERC20), USDT (BEP20)
+
     ---
     <sup>1</sup> - For testing only.
 
@@ -58,7 +60,7 @@ The store completes the transaction.
 
 * Turn the "On" checkbox in the Plugin on the same setting page.
 
-___
+---
 
 ## Third Party API & License Information
 
@@ -69,33 +71,40 @@ ___
 **Privacy policy:** [https://apirone.com/privacy-policy](https://apirone.com/privacy-policy)
 
 **Support:** <support@apirone.com>
-___
 
-## Frequently Asked Questions ##
+---
 
-**I will get money in USD, EUR, CAD, JPY, RUR...?**
+## Frequently Asked Questions
 
->No. You will get crypto only. You can enter the crypto address of your trading platform account and convert crypto to fiat money at any time.
+### I will get money in USD, EUR, CAD, JPY, RUR...?
 
-**How can The Store cancel orders and return bitcoins?**
+> No. You will get crypto only. You can enter the crypto address of your trading platform account and convert crypto to fiat money at any time.
+
+### How can The Store cancel orders and return bitcoins?
+
 > This process is fully manual because you will get all payments to your specified wallet. Only you control your money. Contact the Customer, ask address and finish the deal.
 Bitcoin protocol has no refunds, chargebacks, or transaction cancellations.
 Only the store manager takes a decision of underpaid or overpaid orders.
 Cancel and return the rest amount directly to the customers.
 
-**Do the Plugin support native Bitcoin Segwit ("bc1") addresses?**
->Yes. Sure.
+### Do the Plugin support native Bitcoin Segwit ("bc1") addresses?
 
-**I would like to accept Litecoin only. What should I do?**
->Just enter your LTC address on settings and keep other fields empty.
+> Yes. Sure.
 
-**Fee**
->The plugin uses the free Rest API of the Apirone crypto payment gateway. The pricing page [https://apirone.com/pricing](https://apirone.com/pricing)
+### I would like to accept Litecoin only. What should I do?
+
+> Just enter your LTC address on settings and keep other fields empty.
+
+### Fee
+
+> The plugin uses the free Rest API of the Apirone crypto payment gateway. The pricing page [https://apirone.com/pricing](https://apirone.com/pricing)
 
 ## Changelog
 
 ### Version 2.0.6 | 09/09/2025
 
+* Admin styles & Settings page updated
+* Readme updated
 * Apirone SDK updated to 1.2.9
 
 ### Version 2.0.5 | 04/09/2025
@@ -109,9 +118,8 @@ Cancel and return the rest amount directly to the customers.
 
 ### Version 2.0.3 | 29/04/2025
 
-* Added Etherium coin, USDT and USDC  stable coins on Etherium smart chain
+* Added Ethereum coin, USDT and USDC  stable coins on Ethereum smart chain
 * Apirone SDK updated
-
 
 ### Version 2.0.2 | 04/01/2025
 
