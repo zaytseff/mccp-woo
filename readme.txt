@@ -40,8 +40,10 @@ The store completes the transaction.
 * Bitcoin Cash
 * Dogecoin
 * TRON
-* Tether USD (TRC20)
-* USD Coin (TRC20)
+* Ethereum
+* BNB SMART CHAIN
+* USDC (TRC20), USDC (ERC20), USDC (BEP20)
+* USDT (TRC20), USDT (ERC20), USDT (BEP20)
   
 == Installation via WordPress Plugin Manager ==
 Go to WordPress Admin panel > Plugins > Add New in the admin panel.
@@ -85,6 +87,8 @@ The plugin uses the free Rest API of the Apirone crypto payment gateway. The pri
 == Changelog ==
 
 = Version 2.0.6 | 09/09/2025 =
+- Admin styles & Settings page updated
+- Readme updated
 - Apirone SDK updated to 1.2.9
 
 = Version 2.0.5 | 04/09/2025 =
@@ -95,7 +99,7 @@ The plugin uses the free Rest API of the Apirone crypto payment gateway. The pri
 - Apirone SDK updated
 
 = Version 2.0.3 | 29/04/2025 =
-- Added Etherium coin, USDT and USDC  stable coins on Etherium smart chain
+- Added Ethereum coin, USDT and USDC  stable coins on Ethereum smart chain
 - Apirone SDK updated
 
 = Version 2.0.2 | 04/01/2025 =
