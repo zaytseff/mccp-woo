@@ -770,6 +770,7 @@ class WC_MCCP extends WC_Payment_Gateway
                     exit;
                 }
                 Render::setTimeZoneByOffset($offset);
+                Render::$logo = Invoice::$settings->logo;
                 echo $invoice->render();
                 $order = new WC_Order($invoice->order);
 
