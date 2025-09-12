@@ -85,6 +85,8 @@ The plugin uses the free Rest API of the Apirone crypto payment gateway. The pri
 
 
 == Changelog ==
+= Version 2.0.7 | 11/09/2025 =
+- Fixed 'Apirone logo' parameter handler
 
 = Version 2.0.6 | 09/09/2025 =
 - Admin styles & Settings page updated
