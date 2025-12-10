@@ -3,7 +3,7 @@
  * Plugin Name: Multi Crypto Currency Payment
  * Plugin URI: https://github.com/zaytseff/mccp-woo
  * Description: Multi currency crypto payments for WooCommerce. Uses Apirone Processing Provider
- * Version: 2.0.7
+ * Version: 3.0.0
  * Author: Alex Zaytseff
  * Author URI: https://github.com/zaytseff
  * Tested up to: 6.8.2
@@ -14,10 +14,9 @@ defined('ABSPATH') || exit;
 define('MCCP_ROOT', __DIR__);
 define('MCCP_MAIN', __FILE__);
 define('MCCP_URL', plugin_dir_url(__FILE__));
+define('MCCP_VERSION', get_plugin_data(MCCP_MAIN)['Version']);
 
-use Apirone\API\Log\LoggerWrapper;
-use Apirone\SDK\Service\InvoiceDb;
-use Apirone\SDK\Service\InvoiceQuery;
+use Apirone\SDK\Service\Db\Mysql;
 
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
 	return;
@@ -67,16 +66,16 @@ add_action('wp_enqueue_scripts', function() {
 if (!function_exists('mccp_create_table')) {
     function mccp_create_table() {
         global $wpdb;
-        
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
-        $sql = InvoiceQuery::createInvoicesTable($wpdb->prefix, $wpdb->charset, $wpdb->collate);
+        $sql = Mysql::createTable($wpdb->prefix, $wpdb->charset, $wpdb->collate);
 
         dbDelta($sql);
 
         if ($wpdb->last_error && class_exists('WC_Logger')) {
             $log = new WC_Logger();
-            $log->error($wpdb->last_error, ['source' => 'mccp_install_error']);    
+            $log->error($wpdb->last_error, ['source' => 'mccp_install_error']);
         }
 
         // Remove unused options from v1.0.0

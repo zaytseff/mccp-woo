@@ -2,21 +2,20 @@
 
 if (!defined('ABSPATH')) exit;
 
-use Apirone\API\Log\LoggerWrapper;
 use Apirone\SDK\Invoice;
 use Apirone\SDK\Model\Settings as Options;
 use Apirone\SDK\Model\Settings\Currency;
 use Apirone\SDK\Model\UserData;
-use Apirone\SDK\Service\InvoiceDb;
-use Apirone\SDK\Service\InvoiceQuery;
-use Apirone\SDK\Service\Render;
+use Apirone\SDK\Service\Db;
 use Apirone\SDK\Service\Utils;
+use Apirone\SDK\Service\Logger;
+use Apirone\API\Http\Request;
 
 /** @package  */
 class WC_MCCP extends WC_Payment_Gateway
 {
     public ?Options $options;
-    
+    private ?string $version = null;
     public function __construct()
     {
         $this->id = 'mccp';
@@ -29,31 +28,32 @@ class WC_MCCP extends WC_Payment_Gateway
 
         add_action('woocommerce_receipt_mccp', array( $this, 'invoice_receipt' ));
         add_action('woocommerce_api_mccp_callback', array($this, 'callback_handler'));
-        add_action('woocommerce_api_mccp_check', array($this, 'render_handler'));
+            // add_action('woocommerce_api_mccp_check', array($this, 'render_handler'));
 
         add_action('woocommerce_update_options_payment_gateways_mccp', array($this, 'process_admin_options'));
         add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'show_invoice_info'));
         
-        Invoice::dataUrl(site_url() . '/?wc-api=mccp_check');
+        // Invoice::dataUrl(site_url() . '/?wc-api=mccp_check');
     }
 
     public function init()
     {
-        global $wpdb, $table_prefix;
+        global $table_prefix;
         $this->init_settings();
 
         // Set logger
-        $debug = $this->get_option('debug') == 'yes' ? true : false;
-        LoggerWrapper::setLogger(new \WC_Logger(), $debug);
+        Logger::set(new \WC_Logger());
+
+        // Set UserAgent
+        Request::userAgent('wp-mccp/' . MCCP_VERSION);
 
         $this->do_update();
         $this->get_options();
 
-        Invoice::db($this->db_callback(), $table_prefix);
-        Invoice::settings($this->options);
+        Db::handler($this->db_callback())->adapter('mysql')->prefix($table_prefix);
     }
 
-    // Load existing og create new
+    // Load existing or create new
     public function get_options()
     {
         if(isset($this->options)) {
@@ -71,20 +71,21 @@ class WC_MCCP extends WC_Payment_Gateway
         return $this->options;
     }
 
-    public function get_secret($renew = false) {
-        $secret = $this->get_option('secret', false);
+    // public function get_secret($renew = false) {
+    //     $secret = $this->get_option('secret', false);
 
-        if ( !$secret || $renew ) {
-            $secret = md5(time());
-            $this->update_option('secret', $secret);
-        }
-        return $secret;
-    }
+    //     if ( !$secret || $renew ) {
+    //         $secret = md5(time());
+    //         $this->update_option('secret', $secret);
+    //     }
+    //     return $secret;
+    // }
 
     public function invoice_receipt($order_id)
     {
         $order = new WC_Order($order_id);
-        $invoice = Invoice::getOrderInvoices($order_id)[0] ?? null;
+        // $invoice = Invoice::getOrderInvoices($order_id)[0] ?? null;
+        $invoice = Invoice::get($order_id)[0] ?? null;
         $invoice_id = isset($_GET['invoice']) ? sanitize_text_field($_GET['invoice']) : null;
 
         if($invoice) {
@@ -107,8 +108,10 @@ class WC_MCCP extends WC_Payment_Gateway
 
     public function invoice_create( $order, $coin) {
 
-        $invoice = Invoice::fromFiatAmount($order->get_total(), get_woocommerce_currency(), $coin->abbr, $this->options->factor);
-        $invoice->order($order->get_id())->lifetime($this->options->getTimeout());
+        // $invoice = Invoice::fromFiatAmount($order->get_total(), get_woocommerce_currency(), $coin->abbr, $this->options->factor);
+        $invoice = Invoice::init($this->options->account, $coin->abbr);
+        $invoice->factor($this->options->factor);
+        $invoice->order($order->get_id())->lifetime($this->options->timeout);
         
         // Set invoice secret & callback URL
         $id = md5($this->get_option('secret') . $order->get_order_key());
@@ -136,7 +139,7 @@ class WC_MCCP extends WC_Payment_Gateway
     public function payment_fields()
     {
         if (isset($_GET['pay_for_order'])) {
-            $order    = wc_get_order(get_query_var('order-pay', false));
+            $order = wc_get_order(get_query_var('order-pay', false));
             $total = $order->get_total();
         }
         else {
@@ -199,18 +202,9 @@ class WC_MCCP extends WC_Payment_Gateway
     public function get_option($key, $empty_value = null)
     {
         if(isset($this->options)) {
-            $property = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $key))));
-
-            if (property_exists($this->options, $property)) {
-                $method = 'get' . ucfirst($property);
-                $value = $this->options->$method();
+            $value = $this->options->$key;
+            if ($value !== null)
                 return is_bool($value) ? (($value) ? 'yes' : 'no') : $value;
-            }
-
-            $extra = $this->options->getExtra($key);
-            if ($extra) {
-                return $extra;
-            }
         }
 
         return parent::get_option($key, $empty_value);
@@ -231,7 +225,7 @@ class WC_MCCP extends WC_Payment_Gateway
         WC()->cart->empty_cart();
 
         $coin = $this->options->getCurrency(sanitize_text_field($_POST['mccp_currency']));
-        $invoice = Invoice::getOrderInvoices($order_id)[0] ?? null;
+        $invoice = Invoice::getByOrder($order_id)[0] ?? null;
 
         // Invoice already exist
         if ($invoice) {
@@ -270,35 +264,64 @@ class WC_MCCP extends WC_Payment_Gateway
         $post_data = $this->get_post_data();
         $options = $this->options_fields();
 
-        $this->options->setMerchant($this->get_field_value('merchant', $options['merchant'], $post_data));
-        $this->options->setExtra('test_customer', $this->get_field_value('test_customer', $options['test_customer'], $post_data));
-        $this->options->setTimeout((int) $this->get_field_value('timeout', $options['timeout'], $post_data));
-        $this->options->setExtra('processing_fee', $this->get_field_value('processing_fee', $options['processing_fee'], $post_data));
-        $this->options->setFactor((float) $this->get_field_value('factor', $options['factor'], $post_data));
-        $this->options->setLogo($this->get_field_value('logo', $options['logo'], $post_data) == 'yes' ? true : false);
-        $this->options->setDebug($this->get_field_value('debug', $options['debug'], $post_data) == 'yes' ? true : false);
+        $this->options->merchant($this->get_field_value('merchant', $options['merchant'], $post_data));
+        $this->options->test_customer($this->get_field_value('test_customer', $options['test_customer'], $post_data));
+        $this->options->timeout((int) $this->get_field_value('timeout', $options['timeout'], $post_data));
+        $this->options->processing_fee($this->get_field_value('processing_fee', $options['processing_fee'], $post_data));
+        $this->options->factor((float) $this->get_field_value('factor', $options['factor'], $post_data));
+        $this->options->logo($this->get_field_value('logo', $options['logo'], $post_data) == 'yes' ? true : false);
+        $this->options->debug($this->get_field_value('debug', $options['debug'], $post_data) == 'yes' ? true : false);
 
-        // set addresses & tokens
-        $policy = $this->options->getExtra('processing_fee');
+        // set addresses
+        $policy = $this->options->processing_fee;
         $networks_data = $this->get_field_value('networks', $options['networks'], $post_data);
-        $tokens_data = $this->get_field_value('tokens', $options['tokens'], $post_data);
 
-        foreach ($this->options->getNetworks() as $network) {
-            $this->options->getCurrency($network->abbr)->parseAbbr()->setAddress($networks_data[$network->abbr]);
-            $this->options->getCurrency($network->abbr)->setPolicy($policy);
-            if ($network->isNetwork()) {
-                $tokens = $network->getTokens($this->options->currencies);
-                if($tokens) {
-                    $tokens = array_merge([$network], $tokens);
+        foreach ($this->options->networks as $item) {
+            $this->options->currency($item->abbr)->address($networks_data[$item->abbr]);
+            $this->options->currency($item->abbr)->policy($policy);
+            if ($item->isNetwork()) {
+                if($item->tokens) {
+                    $tokens = array_merge([$item], $item->tokens);
                     foreach ($tokens as $token) {
-                        $this->options->getCurrency($token->abbr)->setPolicy($this->options->getExtra('processing_fee'));
-                        $this->options->getCurrency($token->abbr)->setAddress($network->getAddress());
-                        $this->options->setExtra($token->abbr, array_key_exists($token->abbr, $tokens_data) ? true : false);
+                        $this->options->currency($token->abbr)->policy($this->options->processing_fee);
+                        $this->options->currency($token->abbr)->address($item->address);
                     }
                 }
             }
         }
         $this->options->saveCurrencies();
+
+        // Process errors
+        $errors = false;
+        foreach ($this->options->networks as $network) {
+            if ($network->hasError()) {
+                $errors = true;
+                WC_Admin_Settings::add_error($network->alias . " not saved: " . $network->error);
+            }
+        }
+        // Process coins
+        // pa($this->options->networks);
+        if ($errors) {
+            $this->options->loadCurrencies();
+        }
+        $coins = [];
+        $tokens_data = $this->get_field_value('tokens', $options['tokens'], $post_data);
+        foreach ($this->options->networks as $item) {
+            if ($item->address && !$item->hasError()) {
+                if ($item->tokens) {
+                    $tokens = array_merge([$item], $item->tokens);
+                    foreach ($tokens as $token) {
+                        if (array_key_exists($token->abbr, $tokens_data)) {
+                            $coins[] = $token->abbr;
+                        }
+                    }
+                }
+                else {
+                    $coins[] = $item->abbr;
+                }
+            }
+        }
+        $this->options->coins($coins);
         $this->update_option('options', $this->options->toJson());
     }
     
@@ -329,7 +352,7 @@ class WC_MCCP extends WC_Payment_Gateway
             <div><hr/>
             <h3>Plugin Info:</h3>
                 Version: <b><?php echo $this->get_option('version', 'n/a'); ?></b></br>
-                Account: <b><?php echo $this->options->getAccount(); ?></b><br/>
+                Account: <b><?php echo $this->options->account; ?></b><br/>
                 PHP version: <b><?php echo phpversion(); ?></b><br/>
                 WordPress: <b><?php echo $wp_version; ?></b><br/>
                 WooCommerce: <b><?php echo WC_VERSION; ?></b><br/>
@@ -466,8 +489,8 @@ class WC_MCCP extends WC_Payment_Gateway
                     <table class="form-table">
                         <tbody>
                         <?php
-                        foreach($this->options->getNetworks() as $network) : ?>
-                            <?php $tokens = $network->getTokens($this->options->getCurrencies()); 
+                        foreach($this->options->networks as $network) : ?>
+                            <?php $tokens = $network->tokens; 
                                 $blockchain = ($tokens) ? __(' Blockchain', 'mccp') : '';
                             ?>
                             <tr valign="middle" class="single_select_page">
@@ -481,12 +504,11 @@ class WC_MCCP extends WC_Payment_Gateway
                                         <?php endif; ?>
                                         </span>
 
-                                    <?php echo wc_help_tip(sprintf(__('Enter valid address to activate <b>%s</b> blockchain', 'mccp'), $network->getName())); ?>
+                                    <?php echo wc_help_tip(sprintf(__('Enter valid address to activate <b>%s</b> blockchain', 'mccp'), $network->name)); ?>
                                     </label>
                                 </th>
                                 <td class="forminp">
-                                    <input type="text" name="woocommerce_mccp_networks[<?php echo esc_html( $network->abbr ); ?>]" class="input-text regular-input<?php echo $network->hasError() ? ' error' : '' ;?>" value="<?php echo esc_html( $network->getAddress() ); ?>">
-
+                                    <input type="text" name="woocommerce_mccp_networks[<?php echo esc_html( $network->abbr ); ?>]" class="input-text regular-input<?php echo $network->hasError() ? ' error' : '' ;?>" value="<?php echo esc_html( $network->address ); ?>">
                                     <?php  if ($tokens) : ?>
                                         <div class="tokens_wrapper">
                                         <?php $tokens = array_merge([$network], $tokens); ?>
@@ -496,7 +518,7 @@ class WC_MCCP extends WC_Payment_Gateway
                                                 <label for="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]">
                                                     <input type="checkbox" name="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]"
                                                     id="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]"
-                                                    <?php if ($this->options->getExtra($token->abbr) == 1) : ?>
+                                                    <?php if (in_array($token->abbr, $this->options->coins ?? [])) : ?>
                                                     checked="checked"
                                                     <?php endif; ?>>
                                                     <?php echo strtoupper($token->alias); ?>
@@ -508,7 +530,6 @@ class WC_MCCP extends WC_Payment_Gateway
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-
                         </tbody>
                     </table>
                 </div>
@@ -533,7 +554,7 @@ class WC_MCCP extends WC_Payment_Gateway
     {
         if (is_admin() && $order->payment_method == 'mccp') {
             echo '<h3>' . __('Payment details', 'mccp') . '</h3>';
-            $invoices = Invoice::getOrderInvoices($order->get_id());
+            $invoices = Invoice::getByOrder($order->get_id());
             if ($invoices) {
                 foreach ($invoices as $invoice) {
                     $currency = $this->options->getCurrency($invoice->details->currency);
@@ -563,16 +584,57 @@ class WC_MCCP extends WC_Payment_Gateway
         }
 
         $version = $settings['version'] ?? false;
-        $code_version = get_plugin_data(MCCP_MAIN)['Version'];
 
-        if(version_compare($code_version, $version, '=')) {
+        if(version_compare(MCCP_VERSION, $version, '=')) {
             return;
         }
 
-        // Up from 2.0.0 and above
-        if(version_compare($version, '2.0.0', '>=')) {
-            $settings['version'] = $code_version;
+        // Up from 3.0.0
+        if(version_compare($version, '3.0.0', '>=')) {
+            $settings['version'] = MCCP_VERSION;
             update_option('woocommerce_mccp_settings', $settings, true);
+            return;
+        }
+
+        // Up from 2.0.0 to 3.0.0 - Migrate to SDK 2.0
+        if(version_compare($version, '2.0.0', '>=') && version_compare($version, '3.0.0', '<')) {
+
+            $opts = $settings['options'];
+            $options = Options::fromJson($settings['options']);
+            $options->merchant($opts->merchant);
+            $options->timeout($opts->timeout);
+            $options->factor($opts->factor);
+            $options->logo($opts->logo);
+            $options->test_customer($opts->extra->test_customer);
+            $options->processing_fee($opts->extra->processing_fee);
+
+            // Get coins array
+            $coins = [];
+
+            foreach ($options->networks as $item) {
+                if ($item->address == null) {
+                    continue;
+                }
+                if (count($item->tokens) == 0) {
+                    $coins[] = $item->abbr;
+                    continue;
+                }
+                $tokens = array_merge([$item], $item->tokens);
+                foreach ($item->tokens as $token) {
+                    if (property_exists($opts->extra, $token->abbr) && $opts->extra->{$token->abbr} == 1) {
+                        $coins[] = $token->abbr;
+                    }
+                }
+            }
+            $options->coins($coins);
+            $options->secret($settings['secret']);
+            $options->debug($settings['debug']);
+
+            $new['enabled'] = $settings['enabled'];
+            $new['options'] = $options->toJson();
+            $new['version'] = MCCP_VERSION;
+
+            update_option('woocommerce_mccp_settings', $new, true);
             return;
         }
 
@@ -682,7 +744,7 @@ class WC_MCCP extends WC_Payment_Gateway
     }
     public function callback_handler() 
     {
-        $this->callback_check();
+        $this->callback_checker();
 
         $order_handler = static function($invoice) {
             WC_MCCP::order_status_update($invoice);
@@ -692,14 +754,14 @@ class WC_MCCP extends WC_Payment_Gateway
         exit;
     }
 
-    private function callback_check()
+    private function callback_checker()
     {
         $secret = isset($_GET['id']) ? sanitize_text_field($_GET['id']) : null;
         $data = file_get_contents('php://input');
         $data = ($data) ? json_decode(Utils::sanitize($data)) : new \stdClass;
         $invoice = $data->invoice ?? null; 
         if ($invoice) {
-            $invoice = Invoice::getInvoice($invoice);
+            $invoice = Invoice::get($invoice);
             $order = new WC_Order($invoice->order);
 
             if ($secret == md5($this->get_option('secret') . $order->get_order_key())) {
@@ -708,7 +770,7 @@ class WC_MCCP extends WC_Payment_Gateway
         }
 
         $message = sprintf('Secret %s not valid for invoice %s', $secret, $invoice->invoice ? $invoice->invoice : 'is null');
-        Utils::send_json($message, 400);
+        Utils::sendJson($message, 400);
         exit;
     }
 
@@ -734,7 +796,7 @@ class WC_MCCP extends WC_Payment_Gateway
             $order->update_status('wc-' . $new_status);
             $invoice->setMeta('order-status', $new_status);
         }
-        return;    
+        return;
     }
 
     public static function order_status_by_invoice($invoice)
@@ -751,41 +813,41 @@ class WC_MCCP extends WC_Payment_Gateway
         return $statuses[$invoice->status];
     }
 
-    public function render_handler()
-    {
-        if (Render::isAjaxRequest()) {
-            $data = file_get_contents('php://input');
-            $params = ($data) ? json_decode(Utils::sanitize($data)) : null;
+    // public function render_handler()
+    // {
+    //     if (Render::isAjaxRequest()) {
+    //         $data = file_get_contents('php://input');
+    //         $params = ($data) ? json_decode(Utils::sanitize($data)) : null;
 
-            if ($params) {
-                $id = property_exists($params, 'invoice') ? (string) $params->invoice : '';
-                $offset = property_exists($params, 'offset') ? (int) $params->offset : null;
-                header("Content-Type: text/plain");
-                $invoice = Invoice::getInvoice($id);
-                if ($invoice->details->isExpired()) {
-                    $invoice->update();
-                }
-                if ($offset === null) {
-                    echo $invoice->id ? $invoice->details->statusNum() : 0;
-                    exit;
-                }
-                Render::setTimeZoneByOffset($offset);
-                Render::$logo = Invoice::$settings->logo;
-                echo $invoice->render();
-                $order = new WC_Order($invoice->order);
+    //         if ($params) {
+    //             $id = property_exists($params, 'invoice') ? (string) $params->invoice : '';
+    //             $offset = property_exists($params, 'offset') ? (int) $params->offset : null;
+    //             header("Content-Type: text/plain");
+    //             $invoice = Invoice::get($id);
+    //             if ($invoice->details->isExpired()) {
+    //                 $invoice->update();
+    //             }
+    //             if ($offset === null) {
+    //                 echo $invoice->id ? $invoice->details->statusNum() : 0;
+    //                 exit;
+    //             }
+    //             Render::setTimeZoneByOffset($offset);
+    //             Render::$logo = Invoice::$settings->logo;
+    //             echo $invoice->render();
+    //             $order = new WC_Order($invoice->order);
 
-                if ($invoice->status == 'expired' && $order->get_status() === 'pending') {
-                    WC_MCCP::order_status_update($invoice, $order);
-                }
-                if ($invoice->status == 'expired' && $order->get_status() === 'failed') {
-                    wc_get_template( 'checkout/thankyou.php', array( 'order' => $order ) );
-                }
-            }
-            exit;
-        }
-        echo 0;
-        exit;
-    }
+    //             if ($invoice->status == 'expired' && $order->get_status() === 'pending') {
+    //                 WC_MCCP::order_status_update($invoice, $order);
+    //             }
+    //             if ($invoice->status == 'expired' && $order->get_status() === 'failed') {
+    //                 wc_get_template( 'checkout/thankyou.php', array( 'order' => $order ) );
+    //             }
+    //         }
+    //         exit;
+    //     }
+    //     echo 0;
+    //     exit;
+    // }
 
     public static function db_callback()
     {
