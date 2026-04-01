@@ -1,17 +1,20 @@
-TAG := $(shell test -d .git && git tag --points-at HEAD)
+.PHONY: build vendor help
 
-zip: clear
-	mkdir ./multi-crypto-currency-payment
-	cp -R -t ./multi-crypto-currency-payment ./assets ./inc ./vendor LICENSE.txt mccp.php readme.txt
-	zip -r ./multi-crypto-currency-payment.${TAG}.zip ./multi-crypto-currency-payment
-	rm -rf ./multi-crypto-currency-payment
+build: ## Create plugin zip file
+	@ /bin/bash ./build.sh
 
-help: about
+vendor: ## Install or update vendor dependencies
+	@if [ ! -d './vendor' ]; then \
+		composer install --ignore-platform-reqs; \
+	else \
+		composer update --ignore-platform-reqs; \
+	fi
 
-about:
-	@echo "Makefile to help create .zip file"
-
-clear:
-	rm -f ./multi-crypto-currency-payment*
-
-.PHONY: about help zip clear
+help: ## This help screen
+	@echo
+	@echo 'Make targets:'
+	@echo
+	@cat $(realpath $(firstword $(MAKEFILE_LIST))) | \
+		sed -n -E 's/^([^.][^: ]+)\s*:(([^=#]*##\s*(.*[^[:space:]])\s*)|[^=].*)$$/    \1	\4/p' | \
+		expand -t15
+	@echo
