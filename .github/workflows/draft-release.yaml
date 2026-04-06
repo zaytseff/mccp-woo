@@ -1,0 +1,57 @@
+name: 'Draft release'
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  draft_release:
+    runs-on: ubuntu-latest
+    steps:
+    
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install composer dependencies
+        run: composer update --no-dev --prefer-dist
+
+      - name: Build artifacts
+        run: make
+
+      - name: Create draft release
+        id: draft_release
+        uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-drafter.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean existing assets
+        shell: bash
+        run: |
+          curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
+          assets=`bin/hub api -t repos/${{ github.repository }}/releases/${{ steps.draft_release.outputs.id }}/assets | awk '/\].url/ { print $2 }'`
+          for asset in $assets
+          do
+            bin/hub api -X DELETE $asset
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release WP
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          asset_path: multi-crypto-currency-payment.${{ github.ref_name }}.zip
+          asset_name: multi-crypto-currency-payment.${{ github.ref_name }}.zip
+          asset_content_type: application/zip
+
+      - name: Send notification
+        if: ${{ always() }}
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.discord_webhook_url }}
+          description: 'WordPress ${{  github.ref_name }} draft released now.'
