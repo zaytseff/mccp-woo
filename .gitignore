@@ -2,4 +2,4 @@
 *.bak
 _*.php
 *.zip
-vendor
+vendor*

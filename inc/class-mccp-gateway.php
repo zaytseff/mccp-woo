@@ -41,16 +41,13 @@ class WC_MCCP extends WC_Payment_Gateway
         global $table_prefix;
         $this->init_settings();
 
-        // Set logger
         Logger::set(new \WC_Logger());
-
-        // Set UserAgent
         Request::userAgent('wp-mccp/' . MCCP_VERSION);
+        Db::handler($this->db_callback())->adapter('mysql')->prefix($table_prefix);
 
         $this->do_update();
         $this->get_options();
 
-        Db::handler($this->db_callback())->adapter('mysql')->prefix($table_prefix);
     }
 
     // Load existing or create new
@@ -67,7 +64,6 @@ class WC_MCCP extends WC_Payment_Gateway
             $this->options = Options::init()->createAccount();
             $this->update_option('options', $this->options->toJson());
         }
-
         return $this->options;
     }
 
@@ -81,7 +77,6 @@ class WC_MCCP extends WC_Payment_Gateway
 
         return parent::get_option($key, $empty_value);
     }
-
 
     // public function get_secret($renew = false) {
     //     $secret = $this->get_option('secret', false);
@@ -121,10 +116,6 @@ class WC_MCCP extends WC_Payment_Gateway
     public function invoice_create( $order, $coin) {
 
         // $invoice = Invoice::fromFiatAmount($order->get_total(), get_woocommerce_currency(), $coin->abbr, $this->options->factor);
-        $invoice = Invoice::init($this->options->account, $coin->abbr);
-        $invoice->factor($this->options->factor);
-        $invoice->order($order->get_id())->lifetime($this->options->timeout);
-        
         // Set invoice secret & callback URL
         $id = md5($this->get_option('secret') . $order->get_order_key());
         
@@ -338,7 +329,7 @@ class WC_MCCP extends WC_Payment_Gateway
             </table>
             <?php
                 // pa($this->options->coins);
-                pa($this->available_coins());
+                // pa($this->available_coins());
                 // pa(Utils::loadCoins());
             ?>
             <div><hr/>
@@ -694,38 +685,39 @@ class WC_MCCP extends WC_Payment_Gateway
 
     public function do_update()
     {
-        $settings = get_option('woocommerce_mccp_settings', false);
-        if (!$settings) {
+        $mccp_settings = get_option('woocommerce_mccp_settings', false);
+        if (!$mccp_settings) {
             return;
         }
 
-        $version = $settings['version'] ?? false;
+        $current_version = $mccp_settings['version'] ?? false;
+        if ($current_version == false) {
+            mccp_create_table();
+        }
 
-        if(version_compare(MCCP_VERSION, $version, '=')) {
+        if(version_compare(MCCP_VERSION, $current_version, '=')) {
             return;
         }
 
-        // Up from 3.0.0
-        if(version_compare($version, '3.0.0', '>=')) {
-            $settings['version'] = MCCP_VERSION;
-            update_option('woocommerce_mccp_settings', $settings, true);
+        // Up version above SDK 2.0  (mccp v3.0.0)
+        if(version_compare($current_version, '3.0.0', '>=')) {
+            $mccp_settings['version'] = MCCP_VERSION;
+            update_option('woocommerce_mccp_settings', $mccp_settings, true);
             return;
         }
 
-        // Up from 2.0.0 to 3.0.0 - Migrate to SDK 2.0
-        if(version_compare($version, '2.0.0', '>=') && version_compare($version, '3.0.0', '<')) {
+        $coins = [];
 
-            $opts = $settings['options'];
-            $options = Options::fromJson($settings['options']);
-            $options->merchant($opts->merchant);
-            $options->timeout($opts->timeout);
-            $options->factor($opts->factor);
-            $options->logo($opts->logo);
-            $options->test_customer($opts->extra->test_customer);
-            $options->processing_fee($opts->extra->processing_fee);
+        // Migrate from SDK to SDK 2.0
+        if(version_compare($current_version, '2.0.0', '>=') && version_compare($current_version, '3.0.0', '<')) {
+            $options = Options::fromExistingAccount($mccp_settings['options']->account, $mccp_settings['options']->{'transfer-key'});
 
-            // Get coins array
-            $coins = [];
+            $options->merchant($mccp_settings['options']->merchant ?? '');
+            $options->timeout($mccp_settings['options']->timeout ?? 1800 );
+            $options->factor($mccp_settings['options']->factor ?? 1);
+            $options->logo($mccp_settings['options']->apirone_logo ?? true);
+            $options->test_customer($mccp_settings['options']->extra->test_customer ?? '');
+            $options->processing_fee($mccp_settings['options']->extra->processing_fee ?? 'percentage');
 
             foreach ($options->networks as $item) {
                 if ($item->address == null) {
@@ -742,37 +734,60 @@ class WC_MCCP extends WC_Payment_Gateway
                     }
                 }
             }
-            $options->coins($coins);
-            $options->secret($settings['secret']);
-            $options->debug($settings['debug']);
-
-            $new['enabled'] = $settings['enabled'];
-            $new['options'] = $options->toJson();
-            $new['version'] = MCCP_VERSION;
-
-            update_option('woocommerce_mccp_settings', $new, true);
-            return;
         }
 
-        // Up to 2.0.0 - Migrate to SDK
-        $account = get_option('woocommerce_mccp_account', null);
-        $options = ($account) ? Options::fromJson($account) : Options::init()->createAccount();
+        // Migrate from 1.x - before SDK
+        if ( version_compare($current_version, '1.2.10', '<=') ) {
+            $account = get_option('woocommerce_mccp_account', null);
+            $options = ($account) ? Options::fromJson($account) : Options::init()->createAccount();
 
-        if (version_compare($version, '1.1.0', '>=') && version_compare($version, '1.2.10', '<=')) {
-            // Rename & update existing table
-            global $wpdb, $table_prefix;
-            $query = "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" . DB_NAME . "' AND table_name = '" . $table_prefix . "apirone_mccp';";
-            $rows = $wpdb->get_results($query);
-            if(!empty($rows)){
-                $rename_table = "RENAME TABLE " . DB_NAME . "." . $table_prefix. "apirone_mccp TO " . DB_NAME . "." . $table_prefix. "apirone_invoice;";
-                $wpdb->query($rename_table);
-                $rename_column = "ALTER TABLE " . DB_NAME . "." . $table_prefix. "apirone_invoice RENAME COLUMN `order_id` TO `order`;";
-                $wpdb->query($rename_column);
+            $options->merchant($mccp_settings['merchant'] ?? '');
+            $options->factor((float) $mccp_settings['factor'] ?? 1);
+            $options->timeout((int) $mccp_settings['timeout'] ?? 1800);
+            $options->logo($mccp_settings['apirone_logo'] ?? true);
+            $options->debug($mccp_settings['debug'] ?? false);
+            $options->test_customer($mccp_settings['test_customer'] ?? '');
+            $options->processing_fee($mccp_settings['processing_fee'] ?? 'percentage');
+
+            $currencies = is_array($mccp_settings['currencies']) ? $mccp_settings['currencies'] : [];
+            foreach ($options->networks as $network) {
+                if (array_key_exists($network->abbr, $currencies)) {
+                    $network->policy('percentage');
+                    $network->address($currencies[$network->abbr]->address);
+                }
+            }
+            foreach ($currencies as $currency) {
+                if (!empty($currency->address)) {
+                    $coins[] = $currency->abbr;
+                }
+            }
+        }
+
+        $options->secret($mccp_settings['secret'] ?? get_option('woocommerce_mccp_secret'));
+        $options->coins($coins);
+
+        $mccp_new['enabled'] = $mccp_settings['enabled'];
+        $mccp_new['options'] = $options->toJson();
+        $mccp_new['version'] = MCCP_VERSION;
+
+        update_option('woocommerce_mccp_settings', $mccp_new);
+
+        delete_option('woocommerce_mccp_secret');
+        delete_option('woocommerce_mccp_wallets');
+        delete_option('woocommerce_mccp_account');
+
+
+        if (version_compare($current_version, '1.1.0', '>=') && version_compare($current_version, '1.2.10', '<=')) {
+            global $wpdb;
+
+            if(!empty($wpdb->get_results("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" . DB_NAME . "' AND table_name = '" . $wpdb->prefix . "apirone_mccp';"))) {
+                $wpdb->query("RENAME TABLE " . DB_NAME . "." . $wpdb->prefix. "apirone_mccp TO " . DB_NAME . "." . $wpdb->prefix. "apirone_invoice;");
+                $wpdb->query("ALTER TABLE " . DB_NAME . "." . $wpdb->prefix. "apirone_invoice RENAME COLUMN `order_id` TO `order`;");
+                $wpdb->query("ALTER TABLE " . DB_NAME . "." . $wpdb->prefix. "apirone_invoice ENGINE = InnoDB;");
+                $wpdb->query("DROP TABLE IF EXISTS " . DB_NAME . "." . $wpdb->prefix . "apirone_mccp" );
             }
 
-            // Update old user-data price format for existing invoices
-            $query = "SELECT id, details FROM " . $table_prefix . "apirone_invoice";
-            $result = $wpdb->get_results($query, OBJECT);
+            $result = $wpdb->get_results($query = "SELECT id, details FROM " . $wpdb->prefix . "apirone_invoice", OBJECT);
             if ($result) {
                 $converted = [];
                 foreach ($result as $row) {
@@ -784,77 +799,12 @@ class WC_MCCP extends WC_Payment_Gateway
                 }
                 if ($converted) {
                     foreach ($converted as $row) {
-                        $wpdb->update( $table_prefix . "apirone_invoice",  ['details' =>$row['details']], ['id' => $row['id']]);
-                    }
-                }
-            }
-
-            // Move options
-            $options->setMerchant($settings['merchant']);
-            $options->setFactor((float) $settings['factor']);
-            $options->setTimeout((int) $settings['timeout']);
-            $options->setLogo($settings['apirone_logo']);
-            $options->setDebug($settings['debug']);
-
-            $options->setExtra('test_customer', $settings['test_customer'] ?? '');
-            $options->setExtra('processing_fee', $settings['processing_fee'] ?? 'percentage');
-
-            // Set tokens as enabled if network address is set
-            $currencies = is_array($settings['currencies']) ? $settings['currencies'] : [];
-            foreach ($options->getNetworks() as $network) {
-                if (array_key_exists($network->abbr, $currencies)) {
-                    $network->setAddress($currencies[$network->abbr]->address)->setPolicy('percentage')->parseAbbr();
-                    if ($network->isNetwork()) {
-                        $tokens = $network->getTokens($options->currencies);
-                        if($tokens) {
-                            $tokens = array_merge([$network], $tokens);
-                            foreach ($tokens as $token) {
-                                $options->getCurrency($token->abbr)->setPolicy('percentage');
-                                $options->getCurrency($token->abbr)->setAddress($network->getAddress());
-                                if($token->address) {
-                                    $options->setExtra($token->abbr, true);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    
-        if ($version == false) {
-            // Update 1.0.0
-            mccp_create_table();
-
-            $currencies = is_array($settings['currencies']) ? $settings['currencies'] : [];
-            foreach ($options->getNetworks() as $network) {
-                if (array_key_exists($network->abbr, $currencies)) {
-                    $network->setAddress($currencies[$network->abbr]['address'])->setPolicy('percentage')->parseAbbr();
-                    if ($network->isNetwork()) {
-                        $tokens = $network->getTokens($options->currencies);
-                        if($tokens) {
-                            $tokens = array_merge([$network], $tokens);
-                            foreach ($tokens as $token) {
-                                $options->getCurrency($token->abbr)->setPolicy('percentage');
-                                $options->getCurrency($token->abbr)->setAddress($network->getAddress());
-                                $options->setExtra($token->abbr, true);
-                            }
-                        }
+                        $wpdb->update( $wpdb->prefix . "apirone_invoice",  ['details' =>$row['details']], ['id' => $row['id']]);
                     }
                 }
             }
         }
 
-        $options->saveCurrencies();
-
-        // unset($settings['currencies']);
-        $settings['enabled'] = $this->settings['enabled'];
-        $settings['options'] = $options->toJson();
-        $settings['secret'] = $settings['secret'] ?? get_option('woocommerce_mccp_secret');
-
-        update_option('woocommerce_mccp_settings', $settings);
-        delete_option('woocommerce_mccp_wallets');
-        delete_option('woocommerce_mccp_account');
-        delete_option('woocommerce_mccp_secret');
         $this->init_settings();
     }
 }
