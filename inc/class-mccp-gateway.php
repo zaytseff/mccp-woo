@@ -15,6 +15,8 @@ use Apirone\API\Http\Request;
 class WC_MCCP extends WC_Payment_Gateway
 {
     public ?Options $options;
+    private ?string $version = null;
+
     public function __construct()
     {
         $this->id = 'mccp';
@@ -31,8 +33,6 @@ class WC_MCCP extends WC_Payment_Gateway
 
         add_action('woocommerce_update_options_payment_gateways_mccp', array($this, 'process_admin_options'));
         add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'show_invoice_info'));
-
-        // pa($this->get_coins());
     }
 
     public function init()
@@ -254,9 +254,8 @@ class WC_MCCP extends WC_Payment_Gateway
     public function process_admin_options()
     {
         $this->form_fields = $this->admin_fields();
-        parent::process_admin_options();
-		
         $post_data = $this->get_post_data();
+
         $options = $this->options_fields();
 
         $this->options->merchant($this->get_field_value('merchant', $options['merchant'], $post_data));
@@ -268,57 +267,68 @@ class WC_MCCP extends WC_Payment_Gateway
         $this->options->logo($this->get_field_value('logo', $options['logo'], $post_data) == 'yes' ? true : false);
         $this->options->debug($this->get_field_value('debug', $options['debug'], $post_data) == 'yes' ? true : false);
 
-        // set addresses
-        $policy = $this->options->processing_fee;
-        $networks_data = $this->get_field_value('networks', $options['networks'], $post_data);
+        try {
+            $networks = $this->options->networks;
+            // set addresses
+            $policy = $this->options->processing_fee;
+            $networks_data = $this->get_field_value('networks', $options['networks'], $post_data);
 
-        foreach ($this->options->networks as $item) {
-            $this->options->currency($item->abbr)->address($networks_data[$item->abbr]);
-            $this->options->currency($item->abbr)->policy($policy);
-            if ($item->isNetwork()) {
-                if($item->tokens) {
-                    $tokens = array_merge([$item], $item->tokens);
-                    foreach ($tokens as $token) {
-                        $this->options->currency($token->abbr)->policy($this->options->processing_fee);
-                        $this->options->currency($token->abbr)->address($item->address);
-                    }
-                }
-            }
-        }
-        $this->options->saveNetworks();
-
-        // Process errors
-        $errors = false;
-        foreach ($this->options->networks as $network) {
-            if ($network->hasError()) {
-                $errors = true;
-                WC_Admin_Settings::add_error($network->alias . " not saved: " . $network->error);
-            }
-        }
-        // Process coins
-        if ($errors) {
-            $this->options->loadCurrencies();
-        }
-        $coins = [];
-        $tokens_data = $this->get_field_value('tokens', [], $post_data);
-        foreach ($this->options->networks as $item) {
-            if ($item->address && !$item->hasError()) {
-                if ($item->tokens) {
-                    $tokens = array_merge([$item], $item->tokens);
-                    foreach ($tokens as $token) {
-                        if (array_key_exists($token->abbr, $tokens_data)) {
-                            $coins[] = $token->abbr;
+            foreach ($networks as $item) {
+                $this->options->currency($item->abbr)->address($networks_data[$item->abbr]);
+                $this->options->currency($item->abbr)->policy($policy);
+                if ($item->isNetwork()) {
+                    if($item->tokens) {
+                        $tokens = array_merge([$item], $item->tokens);
+                        foreach ($tokens as $token) {
+                            $this->options->currency($token->abbr)->policy($this->options->processing_fee);
+                            $this->options->currency($token->abbr)->address($item->address);
                         }
                     }
                 }
-                else {
-                    $coins[] = $item->abbr;
+            }
+            $this->options->saveNetworks();
+
+            // Process errors
+            $errors = false;
+            foreach ($this->options->networks as $network) {
+                if ($network->hasError()) {
+                    $errors = true;
+                    WC_Admin_Settings::add_error($network->alias . " not saved: " . $network->error);
+                }
+            }
+            // Process coins
+            if ($errors) {
+                $this->options->loadCurrencies();
+            }
+            $coins = [];
+            $tokens_data = $this->get_field_value('tokens', [], $post_data);
+            foreach ($this->options->networks as $item) {
+                if ($item->address && !$item->hasError()) {
+                    if ($item->tokens) {
+                        $tokens = array_merge([$item], $item->tokens);
+                        foreach ($tokens as $token) {
+                            if (array_key_exists($token->abbr, $tokens_data)) {
+                                $coins[] = $token->abbr;
+                            }
+                        }
+                    }
+                    else {
+                        $coins[] = $item->abbr;
+                    }
                 }
             }
         }
+        catch(Exception $e) {
+            WC_Admin_Settings::add_error(__('Settings not saved.', 'mccp'));
+            return;
+        }
 
         $this->options->coins($coins);
-        $this->update_option('options', $this->options->toJson());
+
+        $this->settings['enabled'] = $this->get_field_value('enabled', $this->form_fields['enabled'], $post_data);
+        $this->settings['options'] = $this->options->toJson();
+
+        update_option('woocommerce_mccp_settings', $this->settings);
     }
     
     public function admin_options()
@@ -330,9 +340,10 @@ class WC_MCCP extends WC_Payment_Gateway
             $form_data = sprintf($wrapper, $this->generate_settings_html($this->admin_fields(), false));
         }
         catch (Exception $e) {
-            wp_admin_notice(__("Could not connect to Apirone API. Please try later."), ['type' => 'error']);
+            wp_admin_notice(__("<strong>Could not connect to Apirone API. Please try later.</strong>", 'mccp'), ['type'=>'error']);
             $form_data = '';
         }
+
         ?>
             <h3><?php _e('Multi Crypto Currency Payment Gateway', 'mccp'); ?></h3>
             <div><?php _e('This plugin uses the Apirone crypto processing service.', 'mccp'); ?> <a href="https://apirone.com" target="_blank"><?php _e('Details'); ?></a></div>
@@ -664,7 +675,7 @@ class WC_MCCP extends WC_Payment_Gateway
         // Up version above SDK 2.0  (mccp v3.0.0)
         if(version_compare($current_version, '3.0.0', '>=')) {
             $mccp_settings['version'] = MCCP_VERSION;
-            update_option('woocommerce_mccp_settings', $mccp_settings, true);
+            update_option('woocommerce_mccp_settings', $mccp_settings);
             return;
         }
 
