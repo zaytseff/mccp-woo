@@ -33,6 +33,8 @@ class WC_MCCP extends WC_Payment_Gateway
 
         add_action('woocommerce_update_options_payment_gateways_mccp', array($this, 'process_admin_options'));
         add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'show_invoice_info'));
+
+        add_filter('woocommerce_available_payment_gateways', array( $this, 'is_gateway_available'), 10, 1);
     }
 
     public function init()
@@ -48,8 +50,25 @@ class WC_MCCP extends WC_Payment_Gateway
         $this->get_options();
 
     }
+    /**
+     * 
+     * @param mixed $available_gateways 
+     * @return mixed 
+     */
+    public function is_gateway_available($available_gateways)
+    {
+        if (empty($this->get_coins())) {
+            unset($available_gateways['mccp']);
+        }
 
-    // Load existing or create new
+        return($available_gateways);
+    }
+
+    /** 
+     * Load existing or create new Options object
+     * 
+     * @return Options 
+     */
     public function get_options()
     {
         if(isset($this->options)) {
@@ -66,6 +85,13 @@ class WC_MCCP extends WC_Payment_Gateway
         return $this->options;
     }
 
+    /**
+     * Tried to get value from $this->options object first.
+     *
+     * @param string $key 
+     * @param mixed $empty_value 
+     * @return string 
+     */
     public function get_option($key, $empty_value = null)
     {
         if(isset($this->options)) {
@@ -77,6 +103,12 @@ class WC_MCCP extends WC_Payment_Gateway
         return parent::get_option($key, $empty_value);
     }
 
+    /**
+     * Returns the stored secret key or generates a new one.
+     *
+     * @param bool $renew 
+     * @return string 
+     */
     public function get_secret($renew = false) {
         $secret = $this->get_option('secret', false);
 
@@ -152,30 +184,35 @@ class WC_MCCP extends WC_Payment_Gateway
             $account = $this->options->account;
             $factor = $this->options->factor;
             $amount = $total * $factor;
-
+            $coins['asd'] = new stdClass;
             $fiat = strtolower(get_woocommerce_currency());
             try {
-                $estimations = Utils::estimate($account, $amount, $fiat, $coins, true, $factor);
+                $estimations = Utils::estimate($account, $amount, $fiat, array_keys($coins), true, $factor);
+                foreach ($estimations as $item) {
+                    if (array_key_exists($item->currency, $coins)) {
+                        $coins[$item->currency]->with_fee = sprintf(" %s %s (fee incl.)", $item->amount + $item->fee, $item->fiat);
+                    }
+                    if (property_exists($item, 'err')) {
+                        unset($coins[$item->currency]);
+                    }
+                }
             }
-            catch (Exception $e) {
-                $coins = [];
-            }
+            catch (Exception $e) {}
         }
         if (empty($coins)) {
             _e('Cryptocurrency payment temporary unavailable. Choose other payment method.', 'mccp');
             return;
         }
-        pa($estimations, '$estimations');
 
         ?>
         <select id="mccp_currency" name="mccp_currency">
         <?php
             foreach ( $coins as $coin ) : ?>
-            <option value="<?php echo $coin; ?>">
-                <?php echo Utils::getCoin($coin)->alias; ?>
-                <?php
-                    // echo esc_html(Utils::humanizeAmount(Utils::cur2min($amounts[$coin->abbr], $coin->unitsFactor), $coin));
-                ?>
+            <option value="<?php echo $coin->abbr; ?>">
+                <?php echo $coin->alias; ?>
+                <?php if (property_exists($coin, 'with_fee')) : ?>
+                    <?php echo esc_html($coin->with_fee); ?>
+                <?php endif; ?>
             </option>
             <?php endforeach; ?>
         </select>
@@ -191,7 +228,7 @@ class WC_MCCP extends WC_Payment_Gateway
             if ($coin->testnet && !$this->show_testnet()) {
                 continue;
             }
-            $coins[] = $abbr;
+            $coins[$abbr] = $coin;
         }
 
         return $coins;
@@ -253,10 +290,10 @@ class WC_MCCP extends WC_Payment_Gateway
 
     public function process_admin_options()
     {
-        $this->form_fields = $this->admin_fields();
+        $this->form_fields = $this->admin_form_fields();
         $post_data = $this->get_post_data();
 
-        $options = $this->options_fields();
+        $options = $this->options_form_fields();
 
         $this->options->merchant($this->get_field_value('merchant', $options['merchant'], $post_data));
         $this->options->test_customer($this->get_field_value('test_customer', $options['test_customer'], $post_data));
@@ -337,7 +374,7 @@ class WC_MCCP extends WC_Payment_Gateway
 
         try {
             $wrapper = '<hr/><table class="form-table mccp-settings">%s</table>';
-            $form_data = sprintf($wrapper, $this->generate_settings_html($this->admin_fields(), false));
+            $form_data = sprintf($wrapper, $this->generate_settings_html($this->admin_form_fields(), false));
         }
         catch (Exception $e) {
             wp_admin_notice(__("<strong>Could not connect to Apirone API. Please try later.</strong>", 'mccp'), ['type'=>'error']);
@@ -362,7 +399,7 @@ class WC_MCCP extends WC_Payment_Gateway
         <?php
     }
 
-    public function admin_fields()
+    public function admin_form_fields()
     {
         return array(
             'enabled' => array(
@@ -381,7 +418,7 @@ class WC_MCCP extends WC_Payment_Gateway
         );
     }
 
-    private function options_fields()
+    private function options_form_fields()
     {
         return array(
                 'merchant' => array(
@@ -459,7 +496,7 @@ class WC_MCCP extends WC_Payment_Gateway
 
     public function generate_options_html ($key, $data)
     {
-        return $this->generate_settings_html($this->options_fields(), false);
+        return $this->generate_settings_html($this->options_form_fields(), false);
     }
 
     /**
