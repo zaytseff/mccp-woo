@@ -1,14 +1,10 @@
 .PHONY: build vendor help
 
 build: ## Create plugin zip file
-	@ /bin/bash ./build.sh
+	@ ./build.sh
 
-vendor: ## Install or update vendor dependencies
-	@if [ ! -d './vendor' ]; then \
-		composer install --ignore-platform-reqs; \
-	else \
-		composer update --ignore-platform-reqs; \
-	fi
+init: ## Install vendor & copy vendor assets
+	@ ./vendor_update.sh
 
 help: ## This help screen
 	@echo

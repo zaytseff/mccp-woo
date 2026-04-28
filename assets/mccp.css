@@ -20,64 +20,64 @@ select#mccp_currency {
 	height: 24px;
     display: inline-block;
     margin-right: .25rem;
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/placeholder.svg);
+    background-image: url(img/currencies/placeholder.svg);
 
 }
 
 .currency-icon.btc, .currency-icon.tbtc {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/btc.svg);
+    background-image: url(img/currencies/btc.svg);
     background-size: cover;
 }
 
 .currency-icon.ltc, .currency-icon.tltc {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/ltc.svg);
+    background-image: url(img/currencies/ltc.svg);
     background-size: cover;
 }
 
 .currency-icon.bch, .currency-icon.tbch {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/bch.svg);
+    background-image: url(img/currencies/bch.svg);
     background-size: cover;
 }
 
 .currency-icon.doge {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/doge.svg);
+    background-image: url(img/currencies/doge.svg);
     background-size: cover;
 }
 
 .currency-icon.trx, .currency-icon.ttrx {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/trx.svg);
+    background-image: url(img/currencies/trx.svg);
     background-size: cover;
 }
 
 .currency-icon.eth,.currency-icon.teth {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/eth.svg);
+    background-image: url(img/currencies/eth.svg);
     background-size: cover;
 }
 .currency-icon.bnb,.currency-icon.tbnb {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/bnb.svg);
+    background-image: url(img/currencies/bnb.svg);
     background-size: cover;
 }
 .currency-icon.link_eth,.currency-icon.link_teth {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/link.svg);
+    background-image: url(img/currencies/link.svg);
     background-size: cover;
 }
 
 .currency-icon.ton,.currency-icon.tton {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/ton.svg);
+    background-image: url(img/currencies/ton.svg);
     background-size: cover;
 }
 
 .currency-icon.usdc_trx, .currency-icon.usdc_ttrx,
 .currency-icon.usdc_eth,.currency-icon.usdc_teth,
 .currency-icon.usdc_bnb,.currency-icon.usdc_bnb {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/usdc.svg);
+    background-image: url(img/currencies/usdc.svg);
     background-size: cover;
 }
 .currency-icon.usdt_trx, .currency-icon.usdt_ttrx,
 .currency-icon.usdt_eth, .currency-icon.usdt_teth,
 .currency-icon.usdt_bnb, .currency-icon.usdt_tbnb,
 .currency-icon.usdt_ton, .currency-icon.usdt_tton {
-    background-image: url(../vendor/apirone/apirone-sdk-php/src/assets/img/currencies/usdt.svg);
+    background-image: url(img/currencies/usdt.svg);
     background-size: cover;
 }
 

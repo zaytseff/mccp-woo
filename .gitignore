@@ -3,3 +3,5 @@
 _*.php
 *.zip
 vendor*
+assets/*
+multi-*
