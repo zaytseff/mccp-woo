@@ -1,11 +1,7 @@
-.entry-content #__apn-invoice.invoice-wrapper {
+.mccp-invoice #invoice-app.wrapper {
     height: unset;
     min-height: unset;
     flex-direction: column;
-}
-
-.invoice-wrapper > .woocommerce-order {
-    width: 100%;
 }
 
 select#mccp_currency {
@@ -13,78 +9,84 @@ select#mccp_currency {
     padding: .25rem .5rem;
     border: 1px solid #999;
     border-radius: 4px;
+    line-height: 2rem;
+}
+.coin-wrapper {
+  display: flex;
+  align-items: center;
+}
+.coin-icon {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  margin-right: .25rem;
+  background-image: url(img/currencies/placeholder.svg);
+}
+.coin-icon__small {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  bottom: -5px;
+  right: -5px;
 }
 
-.currency-icon {
-	width: 24px;
-	height: 24px;
-    display: inline-block;
-    margin-right: .25rem;
-    background-image: url(img/currencies/placeholder.svg);
-
-}
-
-.currency-icon.btc, .currency-icon.tbtc {
+.coin-icon.btc, .coin-icon.tbtc {
     background-image: url(img/currencies/btc.svg);
     background-size: cover;
 }
 
-.currency-icon.ltc, .currency-icon.tltc {
+.coin-icon.ltc, .coin-icon.tltc {
     background-image: url(img/currencies/ltc.svg);
     background-size: cover;
 }
 
-.currency-icon.bch, .currency-icon.tbch {
+.coin-icon.bch, .coin-icon.tbch {
     background-image: url(img/currencies/bch.svg);
     background-size: cover;
 }
 
-.currency-icon.doge {
+.coin-icon.doge {
     background-image: url(img/currencies/doge.svg);
     background-size: cover;
 }
 
-.currency-icon.trx, .currency-icon.ttrx {
+.coin-icon.trx, .coin-icon.ttrx {
     background-image: url(img/currencies/trx.svg);
     background-size: cover;
 }
 
-.currency-icon.eth,.currency-icon.teth {
+.coin-icon.eth,.coin-icon.teth {
     background-image: url(img/currencies/eth.svg);
     background-size: cover;
 }
-.currency-icon.bnb,.currency-icon.tbnb {
+.coin-icon.bnb,.coin-icon.tbnb {
     background-image: url(img/currencies/bnb.svg);
     background-size: cover;
 }
-.currency-icon.link_eth,.currency-icon.link_teth {
+.coin-icon.link_eth,.coin-icon.link_teth {
     background-image: url(img/currencies/link.svg);
     background-size: cover;
 }
 
-.currency-icon.ton,.currency-icon.tton {
+.coin-icon.ton,.coin-icon.tton {
     background-image: url(img/currencies/ton.svg);
     background-size: cover;
 }
 
-.currency-icon.usdc_trx, .currency-icon.usdc_ttrx,
-.currency-icon.usdc_eth,.currency-icon.usdc_teth,
-.currency-icon.usdc_bnb,.currency-icon.usdc_bnb {
+.coin-icon.usdc {
     background-image: url(img/currencies/usdc.svg);
     background-size: cover;
 }
-.currency-icon.usdt_trx, .currency-icon.usdt_ttrx,
-.currency-icon.usdt_eth, .currency-icon.usdt_teth,
-.currency-icon.usdt_bnb, .currency-icon.usdt_tbnb,
-.currency-icon.usdt_ton, .currency-icon.usdt_tton {
+.coin-icon.usdt {
     background-image: url(img/currencies/usdt.svg);
     background-size: cover;
 }
 
-.currency-icon.tbtc, .currency-icon.tbch, .currency-icon.tltc,
-.currency-icon.ttrx, .currency-icon.usdc_ttrx, .currency-icon.usdt_ttrx,
-.currency-icon.teth, .currency-icon.usdc_teth, .currency-icon.usdt_teth, .currency-icon.link_teth,
-.currency-icon.tbnb, .currency-icon.usdc_tbnb, .currency-icon.usdt_tbnb, .currency-icon.usdt_tton
+.coin-icon.tbtc, .coin-icon.tbch, .coin-icon.tltc,
+.coin-icon.ttrx, .coin-icon.teth,  .coin-icon.tbnb
 {
     filter: grayscale();
 }
+
+#apirone_mccp_dropdown{display:flex;position:relative;margin-top:.5rem;width:25rem;max-width:100%}#apirone_mccp_dropdown button{display:flex;font-size:.875rem;width:100%;margin:0;padding:.25rem .5rem;block-size:border-box;border:none;outline:none;background-color:inherit;text-align:start;vertical-align:middle;flex-wrap:nowrap;align-items:center}#apirone_mccp_dropdown button:focus{border:1px solid #d8e2f0}#apirone_mccp_dropdown button:hover{background-color:#f1f1f1}#apirone_mccp_dropdown button .coin-icon{position:relative}#apirone_mccp_dropdown button .coin-icon .coin-small{position:absolute;top:1.25rem;left:1.5rem}#apirone_mccp_dropdown button .coin-text{display:flex;flex-grow:1;flex-wrap:wrap;justify-content:space-between}#apirone_mccp_dropdown button span{margin-left:1rem;text-wrap:nowrap}#apirone_mccp_dropdown button span.coin-alias{font-weight:bold}#apirone_mccp_dropdown button span.with-fee{display:flex;flex-direction:row-reverse;flex-grow:1}#apirone_mccp_dropdown>button{border:1px solid gray;border-radius:.25rem;justify-content:space-between;padding:0 .5rem 0 0}#apirone_mccp_dropdown>button>div{display:flex;flex-grow:1;background-color:inherit;text-align:start;vertical-align:middle;flex-wrap:nowrap;align-items:center;padding:.25rem .5rem}#apirone_mccp_dropdown>.drop-list{position:absolute;z-index:100;width:25rem;max-width:100%;margin:0;margin-top:2.75rem;padding:0;text-align:start;background-color:#fff;border:1px solid #d8e2f0;border-radius:.25rem;max-height:10rem;overflow-y:auto}#apirone_mccp_dropdown>.drop-list>ul{margin:0;padding:0;list-style:none}

@@ -6,8 +6,8 @@
  * Version: 3.0.0
  * Author: Alex Zaytseff
  * Author URI: https://github.com/zaytseff
- * Tested up to: 6.8.2
- */
+ * Requires Plugins: woocommerce
+*/
 
 defined('ABSPATH') || exit;
 
@@ -57,11 +57,15 @@ add_action('admin_enqueue_scripts', function() {
 });
 
 add_action('wp_enqueue_scripts', function() {
-        wp_enqueue_style ( 'mccp_style_invoice', MCCP_URL . 'vendor/apirone/apirone-sdk-php/src/assets/css/styles.min.css' );
-        wp_enqueue_script('mccp_script_invoice', MCCP_URL . '/vendor/apirone/apirone-sdk-php/src/assets/js/script.min.js', array( 'jquery'));
+    if (is_checkout()) {
         wp_enqueue_style( 'mccp_style', MCCP_URL . 'assets/mccp.css' );
+        wp_enqueue_script('mccp_gateway_handler', MCCP_URL . 'assets/mccp.js', ['jquery']);
+
+        // wp_enqueue_script('mccp_script_invoice', MCCP_URL . 'assets/script.min.js', [], null, true);
+        // wp_enqueue_script('mccp_script_invoice', MCCP_URL . 'assets/script.min.js', [], '3.0.0', true);
+        // wp_enqueue_script('mccp_gateway_handler', MCCP_URL . 'assets/mccp.js', []);
     }
-);
+});
 
 if (!function_exists('mccp_create_table')) {
     function mccp_create_table() {

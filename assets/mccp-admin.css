@@ -7,13 +7,13 @@
 }
 
 @media only screen and (max-width: 782px){
-	table.form-table.mccp-settings label.currency-label .woocommerce-help-tip {
+	table.form-table.mccp-settings label.coin-label .woocommerce-help-tip {
 		position: relative;
 		top: 4px;
 	}
 }
 
-table.form-table.mccp-settings label.currency-label{
+table.form-table.mccp-settings label.coin-label{
     display: flex;
     align-items: center;
 }
@@ -37,7 +37,7 @@ td.forminp > table {
 	border-left: 3px solid #ccc;
 }
 
-input[type="checkbox"].currency-enabled {
+input[type="checkbox"].coin-enabled {
 	margin: 6px;
 }
 
