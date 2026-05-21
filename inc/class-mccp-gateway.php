@@ -88,7 +88,7 @@ class WC_MCCP extends WC_Payment_Gateway
         <select id="mccp_currency" name="mccp_currency">
         <?php
             foreach ( $coins as $coin ) : ?>
-            <option value="<?php echo $coin->abbr; ?>">
+            <option attr="some-attr" value="<?php echo $coin->abbr; ?>">
                 <?php echo $coin->alias; ?>
                 <?php if (property_exists($coin, 'with_fee')) : ?>
                     <?php echo esc_html($coin->with_fee); ?>
@@ -196,6 +196,7 @@ class WC_MCCP extends WC_Payment_Gateway
 
         if($invoice) {
             if ($invoice->invoice == $invoice_id) {
+                $this->order_status_update($invoice);
                 $relative = wp_make_link_relative(site_url()) . '/wp-content/plugins/multi-crypto-currency-payment/assets/img';
                 $logo = $this->options->logo ? 'true' : 'false';
                 wp_enqueue_style ( 'mccp_style_invoice', MCCP_URL . 'assets/style.min.css' );
@@ -210,10 +211,10 @@ class WC_MCCP extends WC_Payment_Gateway
                     invoice_id_key: 'invoice',
                     embed: true,
                     logo: <?php echo $logo; ?>,
-                    mount_point: '.mccp-invoice',
+                    mount_point: '#mccp-invoice',
                 };
                 </script>
-            <div class="mccp-invoice"></div>
+            <div id="mccp-invoice" class="test-class" data-received-url="<?php echo $order->get_checkout_order_received_url(); ?>"></div>
             <?php
             }
             else {
@@ -577,7 +578,7 @@ class WC_MCCP extends WC_Payment_Gateway
             return;
         }
 
-        // $order->update_status($statuses[$invoice->status]);
+        $order->update_status($statuses[$invoice->status]);
 
         return;
     }

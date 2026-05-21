@@ -3,8 +3,9 @@ jQuery(document).ready(function($) {
   if (invoice) {
     let observer = new MutationObserver((mutationsList) => {
       for (let mutation of mutationsList) {
-        if (mutation.attributeName === 'class') {
-          if (!invoice.className.includes('loading') || !invoice.className.includes('refresh')) window.location.reload();
+        const stats = ['expired', 'success'];
+        if (mutation.attributeName === 'class' && stats.some(stat => invoice.className.includes(stat))) {
+          window.location.replace($('#mccp-invoice').attr('data-received-url'))
         }
       }
     });
