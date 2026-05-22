@@ -10,5 +10,5 @@ mkdir ./multi-crypto-currency-payment
 
 cp -R -t ./multi-crypto-currency-payment ./assets ./inc ./vendor LICENSE.txt mccp.php readme.txt
 zip -r ./multi-crypto-currency-payment.${TAG}.zip ./multi-crypto-currency-payment
-# rm -rf ./multi-crypto-currency-payment
+rm -rf ./multi-crypto-currency-payment
 
