@@ -683,11 +683,11 @@ class WC_MCCP extends WC_Payment_Gateway
             $invoices = Invoice::getByOrder($order->get_id());
             if ($invoices) {
                 foreach ($invoices as $invoice) {
-                    $currency = $this->options->getCurrency($invoice->details->currency);
+                    $currency = $invoice->details->currency;
                     echo '<hr />';
                     echo sprintf(__('<div>Address: <b>%s</b></div>', 'mccp'), $invoice->details->address);
                     echo sprintf(__('<div>Created: <b>%s</b></div>', 'mccp'), get_date_from_gmt($invoice->details->created, 'd.m.Y H:i:s'));
-                    echo sprintf(__('<div>Amount: <b>%s %s</b></div>', 'mccp'), Utils::humanizeAmount($invoice->details->amount, $currency), strtoupper($invoice->details->currency));
+                    echo sprintf(__('<div>Amount: <b>%s %s</b></div>', 'mccp'), Utils::humanizeAmount($invoice->details->amount, $currency), strtoupper($currency));
                     echo sprintf(__('<div>Status: <b>%s</b></div>', 'mccp'), $invoice->status);
                     foreach ($invoice->details->history as $item) {
                         $status = $item->txid !== null ? ' <a class="address-link" href="' . Utils::getTransactionLink($currency, $item->txid) . '" target="_blank">' . $item->status . '</a>' : $item->status;
