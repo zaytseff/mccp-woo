@@ -1,4 +1,4 @@
-.PHONY: build vendor help
+.PHONY: build init help
 
 build: ## Create plugin zip file
 	@ ./build.sh
