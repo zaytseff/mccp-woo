@@ -5,7 +5,9 @@ jQuery(document).ready(function($) {
       for (let mutation of mutationsList) {
         const stats = ['expired', 'success'];
         if (mutation.attributeName === 'class' && stats.some(stat => invoice.className.includes(stat))) {
-          window.location.replace($('#mccp-invoice').attr('data-received-url'))
+          setTimeout(function() {
+            window.location.replace($('#mccp-invoice').attr('data-received-url'));
+          }, 5000);
         }
       }
     });
