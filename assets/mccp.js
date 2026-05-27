@@ -16,15 +16,17 @@ jQuery(document).ready(function($) {
 });
 
 jQuery( function($) {
-  $( 'body' ).on( 'updated_checkout', function() {
+  function mccp_select2() {
+    $('#mccp_currency').val('null').trigger('change');
     $('#mccp_currency').selectWoo({
+      minimumResultsForSearch: 6,
       templateResult: function(coin) {
         if (!coin.id) return coin.text;
-        let parts = coin.id.split('@');
-        let network = (parts.length > 1 ) ? '<span class="coin-icon coin-icon__small ' + parts[1] + '"></span>' : '';
+        let parts = coin.id.split('@'); let network = (parts.length > 1 ) ? '<span class="coin-icon coin-icon__small ' + parts[1] + '"></span>' : '';
         let item = $('<div class="coin-wrapper"><span class="coin-icon ' + parts[0] + '">' + network + '</span><span> ' + coin.text + '</span></div>');
         return item;
-      }
-    });
-  });
+      }});
+  }
+  $('body').on( 'updated_checkout', function() { mccp_select2() });
+  mccp_select2();
 });

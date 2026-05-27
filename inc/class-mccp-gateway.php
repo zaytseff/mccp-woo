@@ -82,13 +82,14 @@ class WC_MCCP extends WC_Payment_Gateway
             _e('Cryptocurrency payment temporary unavailable. Choose other payment method.', 'mccp');
             return;
         }
-
+        $placeholder = (count($coins) > 1 ) ? '<options></options>' : '';
+        $data_placeholder = ($placeholder) ? sprintf('data-placeholder="%s"',  __('Select a cryptocurrency', 'mccp')) : '';
         ?>
-
-        <select id="mccp_currency" name="mccp_currency">
+        <select id="mccp_currency" name="mccp_currency" <?php echo $data_placeholder; ?>>
         <?php
+            echo $placeholder;
             foreach ( $coins as $coin ) : ?>
-            <option attr="some-attr" value="<?php echo $coin->abbr; ?>">
+            <option value="<?php echo $coin->abbr; ?>">
                 <?php echo $coin->alias; ?>
                 <?php if (property_exists($coin, 'with_fee')) : ?>
                     <?php echo esc_html($coin->with_fee); ?>
@@ -107,17 +108,17 @@ class WC_MCCP extends WC_Payment_Gateway
      */
     public function process_payment($order_id)
     {
+        if (empty(sanitize_text_field($_POST['mccp_currency']))) {
+            wc_add_notice( __('<b>Cryptocurrency is</b> required field.', 'mccp'), 'error' );
+            return ['result' => 'failure'];
+        }
         try {
             $order = new WC_Order($order_id);
             $order->update_status('pending');
             $order->save();
-
-            wc_reduce_stock_levels($order_id);
-            WC()->cart->empty_cart();
-
             $coin = Utils::getCoin(sanitize_text_field($_POST['mccp_currency']));
-            $invoice = Invoice::getByOrder($order_id)[0] ?? null;
 
+            $invoice = Invoice::getByOrder($order_id)[0] ?? null;
             // Invoice already exist
             if ($invoice) {
                 $invoice->update();
@@ -141,11 +142,14 @@ class WC_MCCP extends WC_Payment_Gateway
             $invoice = $this->mccp_invoice_create($order, $coin);
         }
         catch (Exception $e) {
-            wc_add_notice( __('There was an error creating the invoice. Please try again or select a different payment method.', 'woocommerce'), 'error' );
+            wc_add_notice( __('<b>There was an error creating the invoice.</b> Please try again or select a different payment method.', 'mccp'), 'error' );
             return ['result' => 'failure'];
         }
 
         if ($invoice) {
+            wc_reduce_stock_levels($order_id);
+            WC()->cart->empty_cart();
+
             $redirect = add_query_arg(['invoice' => $invoice->invoice], $order->get_checkout_payment_url(true));
             return ['result' => 'success', 'redirect' => $redirect];
         }
