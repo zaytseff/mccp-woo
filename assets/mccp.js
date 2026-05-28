@@ -17,7 +17,9 @@ jQuery(document).ready(function($) {
 
 jQuery( function($) {
   function mccp_select2() {
-    $('#mccp_currency').val('null').trigger('change');
+    if ($('#mccp_currency').children().length > 1) {
+      $('#mccp_currency').val('null').trigger('change');
+    }
     $('#mccp_currency').selectWoo({
       minimumResultsForSearch: 6,
       templateResult: function(coin) {
