@@ -434,9 +434,9 @@ class WC_MCCP extends WC_Payment_Gateway
                 'title' => __('Payment timeout, sec.', 'mccp'),
                 'type' => 'number',
                 'default' => '1800',
-                'description' => __('The period during which a customer shall pay. Set value in seconds', 'mccp'),
+                'description' => __('The period during which a customer shall pay. Set value in seconds. 60 sec min and 86400 sec (24h) max value.', 'mccp'),
                 'desc_tip' => true,
-                'custom_attributes' => array('min' => 0,),
+                'custom_attributes' => array('min' => 60, 'max' => 86400),
             ),
             'factor' => array(
                 'title' => __('Price adjustment factor', 'mccp'),
