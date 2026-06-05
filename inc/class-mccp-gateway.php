@@ -62,7 +62,6 @@ class WC_MCCP extends WC_Payment_Gateway
 
             $account = $this->options->account;
             $factor = $this->options->factor;
-            $amount = $total * $factor;
             $fiat = strtolower(get_woocommerce_currency());
             try {
                 $estimations = Utils::estimate($account, $total, $fiat, array_keys($coins), true, $factor);
@@ -114,8 +113,6 @@ class WC_MCCP extends WC_Payment_Gateway
         }
         try {
             $order = new WC_Order($order_id);
-            $order->update_status('pending');
-            $order->save();
             $coin = Utils::getCoin(sanitize_text_field($_POST['mccp_currency']));
 
             $invoice = Invoice::getByOrder($order_id)[0] ?? null;
@@ -126,16 +123,18 @@ class WC_MCCP extends WC_Payment_Gateway
                     $new = null;
                     // Create new invoice if expired;
                     if ($invoice->status == 'expired' && $order->get_status() === 'failed') {
+                        $order->update_status('pending');
+                        $order->save();
                         $new = $this->mccp_invoice_create($order, $coin);
                     }
                     // Create new invoice if total or currency changed (invoice not expired)
                     if (in_array($invoice->status, ['created', 'partpaid']) && $invoice->details->currency != $coin->abbr) {
                         $new = $this->mccp_invoice_create($order, $coin);
                     }
-                    if ($new) {
-                        $redirect = add_query_arg(['invoice' => $new->invoice], $order->get_checkout_payment_url(true));
-                        return ['result' => 'success', 'redirect' => $redirect];
-                    }
+                    $id = ($new) ? $new->invoice : $invoice->invoice;
+                    $redirect = add_query_arg(['invoice' => $id], $order->get_checkout_payment_url(true));
+
+                    return ['result' => 'success', 'redirect' => $redirect];
                 }
 
             }
@@ -218,7 +217,7 @@ class WC_MCCP extends WC_Payment_Gateway
                     mount_point: '#mccp-invoice',
                 };
                 </script>
-            <div id="mccp-invoice" class="test-class" data-received-url="<?php echo $order->get_checkout_order_received_url(); ?>"></div>
+            <div id="mccp-invoice" data-received-url="<?php echo $order->get_checkout_order_received_url(); ?>"></div>
             <?php
             }
             else {
@@ -245,25 +244,23 @@ class WC_MCCP extends WC_Payment_Gateway
 
     public function mccp_callback_handler() 
     {
-        $order_handler = static function($invoice) {
-            WC_MCCP::order_status_update($invoice);
-        };
-        $current_secret = $this->get_secret();
+        $saved_secret = $this->get_secret();
 
-        $callback_checker = static function() use (&$current_secret) {
+        $order_handler = static function($invoice) {
+            WC_MCCP::order_status_update(Invoice::get($invoice));
+        };
+
+        $callback_checker = static function($invoice) use (&$saved_secret) {
             $secret = isset($_GET['id']) ? sanitize_text_field($_GET['id']) : null;
-            $data = file_get_contents('php://input');
-            $data = ($data) ? json_decode(Utils::sanitize($data)) : new \stdClass;
-            $invoice = $data->invoice ?? null; 
             if ($invoice) {
-                $invoice = Invoice::get($invoice);
                 $order = new WC_Order($invoice->order);
-                if ($secret == md5($current_secret . $order->get_order_key())) {
+                if ($secret == md5($saved_secret . $order->get_order_key())) {
                     return;
                 }
             }
 
             $message = sprintf('Secret %s not valid for invoice %s', $secret, $invoice->invoice ? $invoice->invoice : 'is null');
+            Logger::warning($message);
             Utils::sendJson($message, 400);
             exit;
         };
@@ -583,7 +580,6 @@ class WC_MCCP extends WC_Payment_Gateway
         }
 
         $order->update_status($statuses[$invoice->status]);
-
         return;
     }
 
