@@ -16,6 +16,7 @@ define('MCCP_MAIN', __FILE__);
 define('MCCP_URL', plugin_dir_url(__FILE__));
 define('MCCP_VERSION', get_plugin_data(MCCP_MAIN)['Version']);
 
+use Apirone\SDK\Service\Db;
 use Apirone\SDK\Service\Db\Mysql;
 
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
@@ -69,7 +70,11 @@ if (!function_exists('mccp_create_table')) {
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
-        $sql = Mysql::createTable($wpdb->prefix, $wpdb->charset, $wpdb->collate);
+        Db::$prefix = $wpdb->prefix;
+        Mysql::$charset = $wpdb->charset;
+        Mysql::$collate = $wpdb->collate;
+
+        $sql = Mysql::createTable();
 
         dbDelta($sql);
 
