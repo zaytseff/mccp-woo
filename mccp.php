@@ -7,6 +7,8 @@
  * Author: Alex Zaytseff
  * Author URI: https://github.com/zaytseff
  * Requires Plugins: woocommerce
+ * Requires at least: 5.6
+ * Requires PHP: 7.4
 */
 
 defined('ABSPATH') || exit;
