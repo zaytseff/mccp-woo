@@ -2,9 +2,9 @@
 
 Contributors: zaytseff
 Tags: accept, bitcoin, litecoin, usdt, crypto
-Requires at least: 5.6
-Requires PHP: 7.4
-Tested up to: 6.8
+Tested up to: 7.0
+WC Tested up to: 10.8.1
+Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,13 @@ The plugin uses the free Rest API of the Apirone crypto payment gateway. The pri
 
 
 == Changelog ==
+
+= Version 3.0.0 | 16.06.2026 =
+- Now the plugin source code is based on [Apirone SDK PHP library 2.0](https://github.com/Apirone/apirone-sdk-php).
+- The “**Invoice** application” is a separate SPA now. This means invoice rendering occurs client-side. This SPA is also a part of the SDK, but can be accessed as an [independent application](https://github.com/Apirone/invoice-app).
+- The "**Include fees**" option was added to the payment setting page. It adds service and network fees to the total. The final amount per coin in fiat will be shown to the customer.
+- The currency selector now has an image for every currency. If fees are not included in the total amount, the text for a currency contains only its name. If included, the total amount in fiat (plus the fees), is added to the text.
+
 = Version 2.0.7 | 11/09/2025 =
 - Fixed 'Apirone logo' parameter handler
 

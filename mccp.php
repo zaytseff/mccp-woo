@@ -3,21 +3,23 @@
  * Plugin Name: Multi Crypto Currency Payment
  * Plugin URI: https://github.com/zaytseff/mccp-woo
  * Description: Multi currency crypto payments for WooCommerce. Uses Apirone Processing Provider
- * Version: 2.0.7
+ * Version: 3.0.0
  * Author: Alex Zaytseff
  * Author URI: https://github.com/zaytseff
- * Tested up to: 6.8.2
- */
+ * Requires Plugins: woocommerce
+ * Requires at least: 5.6
+ * Requires PHP: 7.4
+*/
 
 defined('ABSPATH') || exit;
 
 define('MCCP_ROOT', __DIR__);
 define('MCCP_MAIN', __FILE__);
 define('MCCP_URL', plugin_dir_url(__FILE__));
+define('MCCP_VERSION', get_plugin_data(MCCP_MAIN)['Version']);
 
-use Apirone\API\Log\LoggerWrapper;
-use Apirone\SDK\Service\InvoiceDb;
-use Apirone\SDK\Service\InvoiceQuery;
+use Apirone\SDK\Service\Db;
+use Apirone\SDK\Service\Db\Mysql;
 
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
 	return;
@@ -58,25 +60,29 @@ add_action('admin_enqueue_scripts', function() {
 });
 
 add_action('wp_enqueue_scripts', function() {
-        wp_enqueue_style ( 'mccp_style_invoice', MCCP_URL . 'vendor/apirone/apirone-sdk-php/src/assets/css/styles.min.css' );
-        wp_enqueue_script('mccp_script_invoice', MCCP_URL . '/vendor/apirone/apirone-sdk-php/src/assets/js/script.min.js', array( 'jquery'));
+    if (is_checkout()) {
         wp_enqueue_style( 'mccp_style', MCCP_URL . 'assets/mccp.css' );
+        wp_enqueue_script('mccp_gateway_handler', MCCP_URL . 'assets/mccp.js', ['jquery']);
     }
-);
+});
 
 if (!function_exists('mccp_create_table')) {
     function mccp_create_table() {
         global $wpdb;
-        
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
-        $sql = InvoiceQuery::createInvoicesTable($wpdb->prefix, $wpdb->charset, $wpdb->collate);
+        Db::$prefix = $wpdb->prefix;
+        Mysql::$charset = $wpdb->charset;
+        Mysql::$collate = $wpdb->collate;
+
+        $sql = Mysql::createTable();
 
         dbDelta($sql);
 
         if ($wpdb->last_error && class_exists('WC_Logger')) {
             $log = new WC_Logger();
-            $log->error($wpdb->last_error, ['source' => 'mccp_install_error']);    
+            $log->error($wpdb->last_error, ['source' => 'mccp_install_error']);
         }
 
         // Remove unused options from v1.0.0
