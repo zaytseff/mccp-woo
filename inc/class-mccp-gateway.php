@@ -203,7 +203,7 @@ class WC_MCCP extends WC_Payment_Gateway
                 $relative = wp_make_link_relative(site_url()) . '/wp-content/plugins/multi-crypto-currency-payment/assets/img';
                 $logo = $this->options->logo ? 'true' : 'false';
                 wp_enqueue_style ( 'mccp_style_invoice', MCCP_URL . 'assets/style.min.css' );
-                wp_enqueue_script('mccp_script_invoice', MCCP_URL . 'assets/script.min.js');
+                wp_enqueue_script('mccp_script_invoice', MCCP_URL . 'assets/script.min.js', [], false, ['in_footer' => true, 'strategy' => 'defer']);
             ?>
                 <script>
                 window.invoice_app_config = {
