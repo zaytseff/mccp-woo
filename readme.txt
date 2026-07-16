@@ -4,7 +4,7 @@ Contributors: zaytseff
 Tags: accept, bitcoin, litecoin, usdt, crypto
 Tested up to: 7.0
 WC Tested up to: 10.8.1
-Stable tag: 3.0.0
+Stable tag: 3.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,9 @@ The plugin uses the free Rest API of the Apirone crypto payment gateway. The pri
 
 
 == Changelog ==
+
+= Version 3.0.1 | 16.07.2026 =
+- Fixed a gateway display issue for some themes
 
 = Version 3.0.0 | 16.06.2026 =
 - Now the plugin source code is based on [Apirone SDK PHP library 2.0](https://github.com/Apirone/apirone-sdk-php).

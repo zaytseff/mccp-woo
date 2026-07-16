@@ -101,6 +101,10 @@ Cancel and return the rest amount directly to the customers.
 
 ## Changelog
 
+### Version 3.0.1 | 16.07.2026
+
+* Fixed a gateway display issue for some themes.
+
 ### Version 3.0.0 | 16.06.2026
 
 * Now the plugin source code is based on [Apirone SDK PHP library 2.0](https://github.com/Apirone/apirone-sdk-php).
