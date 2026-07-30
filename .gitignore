@@ -1,5 +1,6 @@
 .vscode
 *.bak
+*.log
 _*.php
 *.zip
 vendor*
