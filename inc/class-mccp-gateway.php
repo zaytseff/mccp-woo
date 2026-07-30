@@ -362,7 +362,7 @@ class WC_MCCP extends WC_Payment_Gateway
             $form_data = sprintf($wrapper, $this->generate_settings_html($this->admin_form_fields(), false));
         }
         catch (Exception $e) {
-            wp_admin_notice(__("<strong>Could not connect to Apirone API. Please try later.</strong>", 'mccp'), ['type'=>'error']);
+            wp_admin_notice(__("<strong>An error occurred.</strong><br>" . $e->getMessage(), 'mccp'), ['type'=>'error']);
             $form_data = '';
         }
 
@@ -433,7 +433,7 @@ class WC_MCCP extends WC_Payment_Gateway
                 'default' => '1800',
                 'description' => __('The period during which a customer shall pay. Set value in seconds. 60 sec min and 86400 sec (24h) max value.', 'mccp'),
                 'desc_tip' => true,
-                'custom_attributes' => array('min' => 60, 'max' => 86400),
+                'custom_attributes' => array('min' => 60, 'max' => 86400, 'required' => 'required'),
             ),
             'factor' => array(
                 'title' => __('Price adjustment factor', 'mccp'),
@@ -450,7 +450,7 @@ class WC_MCCP extends WC_Payment_Gateway
                     'percentage' => __('Percentage'),
                     'fixed' => __('Fixed'),
                 ],
-                'default' => 'fixed',
+                'default' => 'percentage',
             ),
             'with_fee' => array(
                 'title' => __('Include fees', 'mccp'),
@@ -506,15 +506,17 @@ class WC_MCCP extends WC_Payment_Gateway
                         <tbody>
                         <?php
                         foreach($networks as $network) : ?>
-                            <?php $tokens = $network->tokens; 
+                            <?php
+                                $tokens = $network->tokens;
                                 $blockchain = ($tokens) ? __(' Blockchain', 'mccp') : '';
+                                $testnet_css_prefix = ($network->isTestnet()) ? 't' : '';
                             ?>
                             <tr valign="middle" class="single_select_page">
                                 <th scope="row" class="titledesc">
                                     <label for="mccp_<?php echo esc_html( $network->abbr ); ?>" class="coin-label">
-                                        <span class="coin-icon <?php echo $network->abbr; ?>"></span>
+                                        <span class="coin-icon <?php echo $network->network; ?>"></span>
                                         <span style="position:relative">
-                                        <?php echo esc_html( $network->alias . $blockchain ); ?>
+                                        <?php echo esc_html( Utils::getChain($network->alias) . $blockchain ); ?>
                                         <?php if ($network->isTestnet()) : ?>
                                         <?php echo wc_help_tip(__('Use this currency for test purposes only! This currency shown for admin and "test currency customer" (if set) is only on the front end of Woocommerce!')); ?>
                                         <?php endif; ?>
@@ -530,7 +532,7 @@ class WC_MCCP extends WC_Payment_Gateway
                                         <?php $tokens = array_merge([$network], $tokens); ?>
                                             <?php foreach ($tokens as $token) : ?>
                                             <div class="token_item">
-                                                <span class="coin-icon <?php echo ($token->token) ? $token->token : $token->network; ?>"></span>
+                                                <span class="coin-icon <?php echo ($token->token) ? $testnet_css_prefix . $token->token : $token->abbr; ?>"></span>
                                                 <label for="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]">
                                                     <input type="checkbox" name="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]"
                                                     id="woocommerce_mccp_tokens[<?php echo esc_html($token->abbr); ?>]"
@@ -650,10 +652,14 @@ class WC_MCCP extends WC_Payment_Gateway
      */
     public function get_option($key, $empty_value = null)
     {
-        if(isset($this->options)) {
-            $value = $this->options->$key;
-            if ($value !== null)
-                return is_bool($value) ? (($value) ? 'yes' : 'no') : $value;
+        $fields = $this->options_form_fields();
+        if (array_key_exists($key, $fields)) {
+            if(isset($this->options)) {
+                $value = $this->options->$key;
+                if ($value !== null)
+                    return is_bool($value) ? (($value) ? 'yes' : 'no') : $value;
+            }
+            return ($fields[$key]['default']) ?? $empty_value;
         }
 
         return parent::get_option($key, $empty_value);

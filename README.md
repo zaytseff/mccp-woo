@@ -42,8 +42,9 @@ The store completes the transaction.
 * TRON
 * Ethereum
 * BNB SMART CHAIN
+* TON/GRAM
 * USDC (TRC20), USDC (ERC20), USDC (BEP20)
-* USDT (TRC20), USDT (ERC20), USDT (BEP20)
+* USDT (TRC20), USDT (ERC20), USDT (BEP20), USDT (TON)
 
     ---
     <sup>1</sup> - For testing only.
@@ -100,6 +101,17 @@ Cancel and return the rest amount directly to the customers.
 > The plugin uses the free Rest API of the Apirone crypto payment gateway. The pricing page [https://apirone.com/pricing](https://apirone.com/pricing)
 
 ## Changelog
+
+### Version 3.1.0 | 30.07.2026
+
+* SDK up to 2.1.0
+* Added ton/gram support
+* Added testnet icons.
+* Fixed display options default values
+
+### Version 3.0.1 | 16.07.2026
+
+* Fixed a gateway display issue for some themes.
 
 ### Version 3.0.0 | 16.06.2026
 
