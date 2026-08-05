@@ -22,6 +22,7 @@ select#mccp_currency {
   display: inline-block;
   margin-right: .25rem;
   background-image: url(img/currencies/placeholder.svg);
+  background-size: cover;
 }
 .coin-icon__small {
   position: absolute;
@@ -31,62 +32,87 @@ select#mccp_currency {
   right: -5px;
 }
 
-.coin-icon.btc, .coin-icon.tbtc {
+.coin-icon.btc {
     background-image: url(img/currencies/btc.svg);
-    background-size: cover;
+}
+.coin-icon.tbtc {
+    background-image: url(img/currencies/tbtc.svg);
 }
 
-.coin-icon.ltc, .coin-icon.tltc {
+.coin-icon.ltc {
     background-image: url(img/currencies/ltc.svg);
-    background-size: cover;
+}
+.coin-icon.tltc {
+    background-image: url(img/currencies/ltc.svg);
 }
 
-.coin-icon.bch, .coin-icon.tbch {
+.coin-icon.bch {
     background-image: url(img/currencies/bch.svg);
-    background-size: cover;
+}
+.coin-icon.tbch {
+    background-image: url(img/currencies/bch.svg);
 }
 
 .coin-icon.doge {
     background-image: url(img/currencies/doge.svg);
-    background-size: cover;
+}
+.coin-icon.tdoge {
+    background-image: url(img/currencies/tdoge.svg);
 }
 
-.coin-icon.trx, .coin-icon.ttrx {
+.coin-icon.trx {
     background-image: url(img/currencies/trx.svg);
-    background-size: cover;
+}
+.coin-icon.ttrx {
+    background-image: url(img/currencies/ttrx.svg);
 }
 
-.coin-icon.eth,.coin-icon.teth {
+.coin-icon.eth {
     background-image: url(img/currencies/eth.svg);
-    background-size: cover;
 }
-.coin-icon.bnb,.coin-icon.tbnb {
-    background-image: url(img/currencies/bnb.svg);
-    background-size: cover;
-}
-.coin-icon.link_eth,.coin-icon.link_teth {
-    background-image: url(img/currencies/link.svg);
-    background-size: cover;
+.coin-icon.teth {
+    background-image: url(img/currencies/teth.svg);
 }
 
-.coin-icon.ton,.coin-icon.tton {
+.coin-icon.bnb {
+    background-image: url(img/currencies/bnb.svg);
+}
+.coin-icon.tbnb {
+    background-image: url(img/currencies/tbnb.svg);
+}
+
+.coin-icon.link_eth {
+    background-image: url(img/currencies/link.svg);
+}
+.coin-icon.link_teth {
+    background-image: url(img/currencies/tbch.svg);
+}
+
+.coin-icon.gram {
+    background-image: url(img/currencies/gram.svg);
+}
+.coin-icon.tgram {
+    background-image: url(img/currencies/tgram.svg);
+}
+
+.coin-icon.ton {
     background-image: url(img/currencies/ton.svg);
-    background-size: cover;
+}
+.coin-icon.tton {
+    background-image: url(img/currencies/tton.svg);
 }
 
 .coin-icon.usdc {
     background-image: url(img/currencies/usdc.svg);
-    background-size: cover;
+}
+.coin-icon.tusdc {
+    background-image: url(img/currencies/tusdc.svg);
 }
 .coin-icon.usdt {
     background-image: url(img/currencies/usdt.svg);
-    background-size: cover;
 }
-
-.coin-icon.tbtc, .coin-icon.tbch, .coin-icon.tltc,
-.coin-icon.ttrx, .coin-icon.teth,  .coin-icon.tbnb
-{
-    filter: grayscale();
+.coin-icon.tusdt {
+    background-image: url(img/currencies/tusdt.svg);
 }
 
 .payment_method_mccp .select2 {
