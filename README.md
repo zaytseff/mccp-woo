@@ -102,6 +102,11 @@ Cancel and return the rest amount directly to the customers.
 
 ## Changelog
 
+### Version 3.2.0 | 16.09.2026
+
+* SDK up to 2.2.0 - CRITICAL SECURITY UPDATE
+
+
 ### Version 3.1.0 | 30.07.2026
 
 * SDK up to 2.1.0
