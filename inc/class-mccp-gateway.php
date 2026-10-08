@@ -284,8 +284,8 @@ class WC_MCCP extends WC_Payment_Gateway
         $this->options->test_customer($this->get_field_value('test_customer', $options['test_customer'], $post_data));
         $this->options->timeout((int) $this->get_field_value('timeout', $options['timeout'], $post_data));
         $this->options->processing_fee($this->get_field_value('processing_fee', $options['processing_fee'], $post_data));
-        $this->options->with_fee($this->get_field_value('with_fee', $options['with_fee'], $post_data) == 'yes' ? true : false);
         $this->options->factor((float) $this->get_field_value('factor', $options['factor'], $post_data));
+        $this->options->with_fee($this->get_field_value('with_fee', $options['with_fee'], $post_data) == 'yes' ? true : false);
         $this->options->logo($this->get_field_value('logo', $options['logo'], $post_data) == 'yes' ? true : false);
         $this->options->debug($this->get_field_value('debug', $options['debug'], $post_data) == 'yes' ? true : false);
 
@@ -464,7 +464,7 @@ class WC_MCCP extends WC_Payment_Gateway
                 'title' => __('Apirone logo', 'mccp'),
                 'type' => 'checkbox',
                 'label' => __('Display', 'mccp'),
-                'default' => 'yes',
+                'default' => 'no',
                 'description' => __('Display Apirone logo on invoice page', 'mccp'),
                 'desc_tip' => true,
             ),

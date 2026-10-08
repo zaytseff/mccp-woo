@@ -102,6 +102,10 @@ Cancel and return the rest amount directly to the customers.
 
 ## Changelog
 
+### Version 3.2.1 | 08.10.2026
+
+* Set display `Apirone logo` default value to `no`
+
 ### Version 3.2.0 | 16.09.2026
 
 * SDK up to 2.2.0 - CRITICAL SECURITY UPDATE
